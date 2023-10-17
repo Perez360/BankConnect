@@ -33,22 +33,26 @@ class UserService(private val dataStore: Datastore) : UserDAO {
         dataStore.merge(updateUser, InsertOneOptions().unsetMissing(false))
     }
 
-    override fun list(page: Int, size: Int): List<User> = dataStore.withTransaction {
+    override fun list(page: Int?, size: Int?): List<User> = dataStore.withTransaction {
+        val startIndex = page ?: 1
+        val endIndex = size ?: 10
         dataStore.find(User::class.java)
-            .iterator(FindOptions().skip((page - 1) * size).limit(size).sort(Sort.descending(User::dateOfBirth.name)))
+            .iterator(FindOptions().skip((startIndex - 1) * endIndex).limit(endIndex).sort(Sort.descending("dob")))
             .toList()
     }
 
     override fun filter(filterUserRequest: FilterUserRequest): List<User> = dataStore.withTransaction {
         dataStore.find(User::class.java).apply {
-            filterUserRequest.name?.let { filter(Filters.eq("name", it)) }
+            filterUserRequest.fName?.let { filter(Filters.eq("fName", it)) }
+            filterUserRequest.mName?.let { filter(Filters.eq("mName", it)) }
+            filterUserRequest.lName?.let { filter(Filters.eq("lName", it)) }
             filterUserRequest.placeOfBirth?.let { filter(Filters.eq("pob", it)) }
             filterUserRequest.homeTown?.let { filter(Filters.eq("homeTown", it)) }
             filterUserRequest.dob?.let { filter(Filters.eq("dob", it)) }
 
             iterator(
                 FindOptions().skip(filterUserRequest.page).limit(filterUserRequest.size)
-                    .sort(Sort.descending(User::dateOfBirth.name))
+                    .sort(Sort.descending("dob"))
             )
         }.toList()
     }

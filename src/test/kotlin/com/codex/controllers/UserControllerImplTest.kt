@@ -98,7 +98,7 @@ class UserControllerImplTest {
         every { userDAOMockk.get(userID) } returns oneUser
 
         //WHEN
-        val expected = underTest.getUserById(userID)
+        val expected = underTest.getUserById(userID.toHexString())
         verify { userDAOMockk.get(userID) }
 
         //THEN
@@ -115,7 +115,7 @@ class UserControllerImplTest {
         every { userDAOMockk.get(userID) } returns null
 
         //WHEN
-        val expected = underTest.getUserById(userID)
+        val expected = underTest.getUserById(userID.toHexString())
         verify { userDAOMockk.get(userID) }
 
         //THEN
@@ -134,7 +134,7 @@ class UserControllerImplTest {
         //THEN
         assertThrows<ServiceException> {
             //WHEN
-            underTest.getUserById(userID)
+            underTest.getUserById(userID.toHexString())
         }
 
         verify { userDAOMockk.get(userID) }

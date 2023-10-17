@@ -4,7 +4,7 @@ import com.codex.domain.*
 import com.codex.shared.APIResponse
 
 fun <T> wrapSuccessInResponse(data: T): APIResponse<T> {
-    if (UserRequestContext.getCurrentLanguage() == "fr")
+    if (UserRequestContext.getUserRequest()?.currentLanguage == "fr")
         return APIResponse(CODE_SERVICE_SUCCESS, CODE_SUCCESS, "Succès", data)
     return APIResponse(CODE_SERVICE_SUCCESS, CODE_SUCCESS, "Success", data)
 }

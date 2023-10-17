@@ -99,7 +99,7 @@ class UserServiceTest {
     fun `it should update a when user is in DB`() {
         //GIVEN
         val oneUser = listOfSavedUsers.first()
-        oneUser.dateOfBirth = LocalDate.now()
+        oneUser.middleName = "Kwame"
 
         //WHEN
         val expected = underTest.update(oneUser)
@@ -147,7 +147,7 @@ class UserServiceTest {
         val filterUserRequest = FilterUserRequest(
             page = 1,
             size = 100,
-            dob = oneUserToFilterFor.dateOfBirth
+            fName = oneUserToFilterFor.firstName
         )
 
         //WHEN
@@ -167,7 +167,7 @@ class UserServiceTest {
         val filterUserRequest = FilterUserRequest(
             page = 1,
             size = 100,
-            name = oneUserToFilterFor.name
+            fName = oneUserToFilterFor.firstName
         )
 
         //WHEN

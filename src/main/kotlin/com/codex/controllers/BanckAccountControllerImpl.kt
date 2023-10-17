@@ -5,6 +5,7 @@ import com.codex.models.BankAccount
 import com.codex.models.FilterBankAccountRequest
 import com.codex.repos.BankAccountDAO
 import com.codex.shared.APIResponse
+import com.codex.util.validators.BankAccountValidator
 import com.codex.util.wrapFailureInResponse
 import com.codex.util.wrapSuccessInResponse
 import org.bson.types.ObjectId
@@ -14,23 +15,30 @@ import org.kodein.di.instance
 
 class BankAccountControllerImpl(override val di: DI) : BankAccountController, DIAware {
     private val bankAccountDAO: BankAccountDAO by di.instance<BankAccountDAO>()
-    override fun createBankAccount(user: BankAccount): APIResponse<BankAccount> {
-        val newUser = bankAccountDAO.create(user) ?: throw ServiceException(-4, "Failed to save bank account")
+    override fun createBankAccount(bankAccount: BankAccount): APIResponse<BankAccount> {
+        //Validating bank account details
+        BankAccountValidator.validate(bankAccount)
+
+        val newUser = bankAccountDAO.create(bankAccount) ?: throw ServiceException(-4, "Failed to save bank account")
         return wrapSuccessInResponse(newUser)
     }
 
-    override fun getBankAccountById(id: ObjectId): APIResponse<BankAccount> {
+    override fun getBankAccountById(id: String): APIResponse<BankAccount> {
+        val bankAccountID = ObjectId(id)
         val oneBankAccount =
-            bankAccountDAO.get(id) ?: return wrapFailureInResponse("Failed to fetch bank account by ID: $id")
+            bankAccountDAO.get(bankAccountID) ?: return wrapFailureInResponse("No bank account found with this id: $id")
         return wrapSuccessInResponse(oneBankAccount)
     }
 
-    override fun updateBankAccount(updatedBankAccount: BankAccount): APIResponse<BankAccount> {
-        val isBankAccountExists = bankAccountDAO.exists(updatedBankAccount.id)
-        if (!isBankAccountExists) return wrapFailureInResponse("BankAccount does not exist with this ID: ${updatedBankAccount.id}")
+    override fun updateBankAccount(bankAccount: BankAccount): APIResponse<BankAccount> {
+        //Validating bank account details
+        BankAccountValidator.validate(bankAccount)
+
+        val isBankAccountExists = bankAccountDAO.exists(bankAccount.id)
+        if (!isBankAccountExists) return wrapFailureInResponse("BankAccount does not exist with this ID: ${bankAccount.id}")
 
         val updatedBankAccount =
-            bankAccountDAO.update(updatedBankAccount) ?: throw ServiceException(-4, "Failed to update bank account")
+            bankAccountDAO.update(bankAccount) ?: throw ServiceException(-4, "Failed to update bank account")
         return wrapSuccessInResponse(updatedBankAccount)
     }
 
