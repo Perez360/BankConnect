@@ -1,0 +1,11 @@
+package com.codex.prez.enums
+
+enum class AccountType {
+    SAVINGS_ACCOUNT,
+    CHECKING_ACCOUNT,
+    BUSINESS_ACCOUNT,
+    FIXED_DEPOSIT_ACCOUNT,
+    MONEY_MARKET_ACCOUNT,
+    CERTIFICATE_OF_DEPOSIT_ACCOUNT,
+    JOINT_ACCOUNT
+}
