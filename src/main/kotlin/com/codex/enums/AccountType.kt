@@ -1,4 +1,4 @@
-package com.codex.prez.enums
+package com.codex.enums
 
 enum class AccountType {
     SAVINGS_ACCOUNT,

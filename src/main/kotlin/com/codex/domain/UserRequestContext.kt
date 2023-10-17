@@ -1,4 +1,4 @@
-package com.codex.prez.domain
+package com.codex.domain
 
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper

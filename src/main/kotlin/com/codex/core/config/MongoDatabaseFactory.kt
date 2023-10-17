@@ -21,7 +21,7 @@ object MongoDatabaseFactory {
     }
 
     private fun prepareMappedPackages() {
-        datastore.mapper.mapPackage("com.codex.prez.models")
+        datastore.mapper.mapPackage("com.codex.models")
     }
 
     fun getDataStore(): Datastore {
