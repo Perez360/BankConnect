@@ -1,4 +1,4 @@
-package com.codex.util
+package com.codex.util.converters
 
 import org.bson.types.ObjectId
 import uk.co.jemos.podam.api.AttributeMetadata

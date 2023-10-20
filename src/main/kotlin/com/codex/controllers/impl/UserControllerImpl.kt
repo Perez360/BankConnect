@@ -1,11 +1,11 @@
-package com.codex.controllers
+package com.codex.controllers.impl
 
+import com.codex.controllers.UserController
 import com.codex.exceptions.ServiceException
-import com.codex.models.FilterUserRequest
-import com.codex.models.Pagination
-import com.codex.models.User
+import com.codex.models.*
 import com.codex.repos.UserDAO
 import com.codex.shared.APIResponse
+import com.codex.util.Mapper
 import com.codex.util.PasswordOperations
 import com.codex.util.validators.UserValidator
 import com.codex.util.wrapFailureInResponse
@@ -17,13 +17,14 @@ import org.kodein.di.instance
 
 class UserControllerImpl(override val di: DI) : UserController, DIAware {
     private val userDAO: UserDAO by di.instance<UserDAO>()
-    override fun createUser(user: User): APIResponse<User> {
+    override fun createUser(createUserDTO: CreateUserDTO): APIResponse<User> {
+
+        val user: User = Mapper.convert<CreateUserDTO, User>(createUserDTO)
+
 //        validating user details
         UserValidator.validate(user)
-
 //        Encrypting password
-        user.password = PasswordOperations.encrypt(user.password)
-
+        user.password = PasswordOperations.encrypt(createUserDTO.password)
 
         val newUser = userDAO.create(user)
             ?: throw ServiceException(-4, "Failed to save user")
@@ -37,28 +38,31 @@ class UserControllerImpl(override val di: DI) : UserController, DIAware {
         return wrapSuccessInResponse(oneUser)
     }
 
-    override fun updateUser(updatedUser: User): APIResponse<User> {
-        //Validating user details
-        UserValidator.validate(updatedUser)
+    override fun updateUser(updateUserDTO: UpdateUserDTO): APIResponse<User> {
 
-        val isUserExists = userDAO.exists(updatedUser.id)
-        if (!isUserExists) return wrapFailureInResponse("User does not exist with this ID: ${updatedUser.id}")
+        val isUserExists = userDAO.exists(ObjectId(updateUserDTO.id))
+        if (!isUserExists) return wrapFailureInResponse("User does not exist with this ID: ${updateUserDTO.id}")
 
-        val oneUser = userDAO.update(updatedUser)
+        val mappedUser: User = Mapper.convert<UpdateUserDTO, User>(updateUserDTO)
+        //        Validating user details
+        UserValidator.validate(mappedUser)
+
+        val oneUser = userDAO.get(ObjectId())
+        if (oneUser == mappedUser) return wrapSuccessInResponse(oneUser)
+
+        val updatedUser = userDAO.update(mappedUser)
             ?: throw ServiceException(-4, "Failed to update user")
-        return wrapSuccessInResponse(oneUser)
+        return wrapSuccessInResponse(updatedUser)
     }
 
-    override fun listUsers(page: Int?, size: Int?): APIResponse<Pagination<List<User>>> {
-        val startIndex = page ?: 1
-        val endIndex = size ?: 10
-        val listOfUsers = userDAO.list(startIndex, endIndex)
-        return wrapSuccessInResponse(Pagination.parginate(startIndex, endIndex, listOfUsers))
+    override fun listUsers(page: Int?, size: Int?): APIResponse<PaginationModel<List<User>>> {
+        val listOfUsers = userDAO.list(page, size)
+        return wrapSuccessInResponse(listOfUsers)
     }
 
-    override fun filterUsers(filterUserRequest: FilterUserRequest): APIResponse<Pagination<List<User>>> {
+    override fun filterUsers(filterUserRequest: FilterUserRequest): APIResponse<PaginationModel<List<User>>> {
         val listOfUsers = userDAO.filter(filterUserRequest)
-        return wrapSuccessInResponse(Pagination.parginate(filterUserRequest.page, filterUserRequest.size, listOfUsers))
+        return wrapSuccessInResponse(listOfUsers)
     }
 
     override fun deleteUser(id: String): APIResponse<Boolean> {
@@ -73,7 +77,7 @@ class UserControllerImpl(override val di: DI) : UserController, DIAware {
 
     override fun deleteAllUsers(): APIResponse<Boolean> {
         val deleteCount = userDAO.deleteAll()
-        if (deleteCount < 1) throw ServiceException(-4, "Failed to delete all users")
+        if (userDAO.count() > deleteCount) throw ServiceException(-4, "Failed to delete all users")
         return wrapSuccessInResponse(true)
     }
 }

@@ -5,9 +5,9 @@ import com.codex.core.config.MongoDatabaseFactory
 import com.codex.exceptions.ServiceException
 import com.codex.models.FilterUserRequest
 import com.codex.models.User
-import com.codex.util.LocalDateTimeTypeManufacturer
-import com.codex.util.LocalDateTypeManufacturer
-import com.codex.util.ObjectIdTypeManufacturer
+import com.codex.util.converters.LocalDateTimeTypeManufacturer
+import com.codex.util.converters.LocalDateTypeManufacturer
+import com.codex.util.converters.ObjectIdTypeManufacturer
 import dev.morphia.query.UpdateException
 import org.assertj.core.api.Assertions
 import org.bson.types.ObjectId

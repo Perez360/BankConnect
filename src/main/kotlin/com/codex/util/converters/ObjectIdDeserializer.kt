@@ -1,4 +1,4 @@
-package com.codex.util
+package com.codex.util.converters
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext

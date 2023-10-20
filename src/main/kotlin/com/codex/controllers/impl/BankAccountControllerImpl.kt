@@ -1,5 +1,6 @@
-package com.codex.controllers
+package com.codex.controllers.impl
 
+import com.codex.controllers.BankAccountController
 import com.codex.exceptions.ServiceException
 import com.codex.models.BankAccount
 import com.codex.models.FilterBankAccountRequest

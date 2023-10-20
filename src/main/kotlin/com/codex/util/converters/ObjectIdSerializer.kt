@@ -1,4 +1,4 @@
-package com.codex.util
+package com.codex.util.converters
 
 import com.codex.logger
 import com.fasterxml.jackson.core.JsonGenerator

@@ -36,7 +36,9 @@ class BankAccountService(private val dataStore: Datastore) : BankAccountDAO {
 
     override fun list(page: Int, size: Int): List<BankAccount> = dataStore.withTransaction {
         dataStore.find(BankAccount::class.java)
-            .iterator(FindOptions().skip(page).limit(size).sort(Sort.descending(BankAccount::accountStatus.name)))
+            .iterator(
+                FindOptions().skip(page).limit((page - 1) * size).sort(Sort.descending("dateCreated"))
+            )
             .toList()
     }
 
@@ -52,7 +54,8 @@ class BankAccountService(private val dataStore: Datastore) : BankAccountDAO {
                 filterBankAccountRequest.dataCreated?.let { filter(Filters.eq("datCreated", it)) }
 
                 iterator(
-                    FindOptions().skip(filterBankAccountRequest.page).limit(filterBankAccountRequest.size)
+                    FindOptions().skip(filterBankAccountRequest.page)
+                        .limit((filterBankAccountRequest.page - 1) * filterBankAccountRequest.size)
                         .sort(Sort.descending(BankAccount::dateCreated.name))
                 )
             }.toList()

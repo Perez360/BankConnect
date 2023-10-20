@@ -1,7 +1,7 @@
 package com.codex.plugins
 
-import com.codex.controllers.BankAccountControllerImpl
-import com.codex.controllers.UserControllerImpl
+import com.codex.controllers.impl.BankAccountControllerImpl
+import com.codex.controllers.impl.UserControllerImpl
 import com.codex.core.config.Configuration.getSystemProperties
 import com.codex.core.config.MongoDatabaseFactory
 import com.codex.repos.BankAccountService

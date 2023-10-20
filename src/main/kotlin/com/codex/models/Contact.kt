@@ -1,11 +1,11 @@
 package com.codex.models
 
 import com.codex.enums.ContactType
-import dev.morphia.annotations.Embedded
+import dev.morphia.annotations.Entity
 
-@Embedded
+@Entity
 data class Contact(
-    var content: String? = null,
+    var content: String,
     var active: Boolean,
     var contactType: ContactType = ContactType.NONE
 )

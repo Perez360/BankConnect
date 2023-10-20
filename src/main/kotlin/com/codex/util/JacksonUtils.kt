@@ -1,14 +1,13 @@
 package com.codex.util
 
+import com.codex.util.converters.CustomModule
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
-import org.bson.types.ObjectId
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -20,24 +19,19 @@ object JacksonUtils {
     /**
      * Returns an object mapper used to convert Jackson JSON object to kotlin classes and vice versa
      **/
-    private val objectMapperJackson: ObjectMapper = ObjectMapper()
-        .registerModule(ParameterNamesModule())
-        .registerModule(Jdk8Module())
-        .registerModule(JavaTimeModule())
-        .registerModule(
-            SimpleModule().addSerializer(ObjectId::class.java, ObjectIdSerializer())
-                .addDeserializer(ObjectId::class.java, ObjectIdDeserializer())
-        )
-        .registerKotlinModule()
-        .enable(SerializationFeature.INDENT_OUTPUT)
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES)
-        .disable(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES)
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-
-
     fun getJacksonMapper(): ObjectMapper {
-        return objectMapperJackson
+        return ObjectMapper()
+            .registerModule(ParameterNamesModule())
+            .registerModule(Jdk8Module())
+            .registerModule(JavaTimeModule())
+            .registerModule(CustomModule())
+            .registerKotlinModule()
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES)
+            .disable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES)
+            .disable(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES)
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     }
 
     /**

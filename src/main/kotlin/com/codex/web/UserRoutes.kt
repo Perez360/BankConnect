@@ -3,8 +3,10 @@ package com.codex.web
 import com.codex.controllers.UserController
 import com.codex.exceptions.ServiceException
 import com.codex.logger
+import com.codex.models.CreateUserDTO
 import com.codex.models.FilterUserRequest
-import com.codex.models.User
+import com.codex.models.UpdateUserDTO
+import com.codex.util.JacksonUtils
 import com.codex.util.validators.UserFilterValidator
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -21,8 +23,7 @@ fun Application.configureUserRouting() {
     routing {
         route(baseUrl) {
             post {
-                val newUser = call.receive<User>()
-                logger.info(newUser.toString())
+                val newUser = call.receive<CreateUserDTO>()
                 val response = useController.createUser(newUser)
                 call.respond(HttpStatusCode.OK, response)
             }
@@ -36,7 +37,7 @@ fun Application.configureUserRouting() {
                 call.respond(HttpStatusCode.OK, user)
             }
 
-            get {
+            get("/list") {
                 val page: String? = call.request.queryParameters["page"]
                 val size: String? = call.request.queryParameters["size"]
 
@@ -44,12 +45,12 @@ fun Application.configureUserRouting() {
                 call.respond(HttpStatusCode.OK, response)
             }
 
-            get {
-                val parameters: Parameters = call.receiveParameters()
+            get("/filter") {
+                val parameters: Parameters = call.request.queryParameters
 
-                val map = mutableMapOf<String, Any>()
+                val map = mutableMapOf<String, Any?>()
                 for (x in parameters.entries()) {
-                    map[x.key] = x.value
+                    map[x.key] = x.value.first()
                 }
 
                 UserFilterValidator.validate(map)
@@ -60,7 +61,7 @@ fun Application.configureUserRouting() {
             }
 
             put {
-                val updatedUser = call.receive<User>()
+                val updatedUser = call.receive<UpdateUserDTO>()
                 val response = useController.updateUser(updatedUser)
                 call.respond(HttpStatusCode.OK, response)
             }

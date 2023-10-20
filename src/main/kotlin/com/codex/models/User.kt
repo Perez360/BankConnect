@@ -1,15 +1,16 @@
 package com.codex.models
 
 import com.codex.enums.Gender
+import com.codex.enums.UserStatus
+import com.codex.util.listeners.UserEntityListener
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
 import dev.morphia.annotations.*
 import org.bson.types.ObjectId
-import org.jetbrains.annotations.NotNull
 import java.time.LocalDate
 
 @Entity("users")
-@JsonIgnoreProperties(value = ["version", "id"], allowGetters = true)
+@EntityListeners(value = [UserEntityListener::class])
+@JsonIgnoreProperties(value = ["version", "password"], allowGetters = false)
 @Indexes(
     Index(
         fields = [
@@ -25,7 +26,7 @@ import java.time.LocalDate
 )
 data class User(
     @Id
-    val id: ObjectId ,
+    var id: ObjectId = ObjectId(),
     @Property("fName")
     var firstName: String,
     @Property("mName")
@@ -35,59 +36,82 @@ data class User(
     @Property("pob")
     var placeOfBirth: String,
     var homeTown: String,
-    @NotNull
-    val gender: Gender,
+    var gender: Gender,
+    val status: UserStatus,
     @Property("dob")
     var dateOfBirth: LocalDate,
-    val contacts: List<Contact>,
+    var contacts: MutableList<Contact> = mutableListOf(),
     var msisdn: String,
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     var password: String,
-    @Version
-    var version: Long,
+    var version: Long = 1L,
 )
 
-//data class CreateUserDTO(
-//    val firstName: String,
-//    val middleName: String,
-//    val lastName: String,
-//    val placeOfBirth: String,
-//    val homeTown: String,
-//    val dateOfBirth: String,
-//    val password: String
-//)
+data class CreateUserDTO(
+    val firstName: String,
+    val middleName: String,
+    val lastName: String,
+    val placeOfBirth: String,
+    val homeTown: String,
+    val contacts: MutableList<Contact>,
+    val dateOfBirth: String,
+    val gender: Gender,
+    val status: UserStatus,
+    val msisdn: String,
+    val password: String
+)
+
+data class UpdateUserDTO(
+    val id: String,
+    val firstName: String,
+    val middleName: String,
+    val lastName: String,
+    val placeOfBirth: String,
+    val homeTown: String,
+    val contacts: MutableList<Contact>,
+    val dateOfBirth: String,
+    val gender: Gender,
+    val status: UserStatus,
+    val msisdn: String,
+    val password: String
+)
 
 
 data class FilterUserRequest(
-    var fName: String? = null,
-    var mName: String? = null,
-    var lName: String? = null,
+    var firstName: String? = null,
+    var middleName: String? = null,
+    var lastName: String? = null,
+    var gender: String? = null,
+    var status: String? = null,
     var placeOfBirth: String? = null,
     var homeTown: String? = null,
-    val dob: String? = null,
+    val dateOfBirth: String? = null,
     val page: Int = 1,
     val size: Int = 10
 ) {
     companion object {
-        fun fromMap(map: Map<String, Any>): FilterUserRequest {
-            val fName: String? by map.withDefault { null }
-            val mName: String? by map.withDefault { null }
-            val lName: String? by map.withDefault { null }
+        fun fromMap(map: Map<String, Any?>): FilterUserRequest {
+            val firstName: String? by map.withDefault { null }
+            val middleName: String? by map.withDefault { null }
+            val lastName: String? by map.withDefault { null }
+            val status: String? by map.withDefault { null }
+            val gender: String? by map.withDefault { null }
             val placeOfBirth: String? by map.withDefault { null }
             val homeTown: String? by map.withDefault { null }
-            val dob: String? by map.withDefault { null }
-            val page: Int? by map.withDefault { 1 }
-            val size: Int? by map.withDefault { 10 }
+            val dateOfBirth: String? by map.withDefault { null }
+            val page: String by map.withDefault { "1" }
+            val size: String by map.withDefault { "10" }
 
             return FilterUserRequest(
-                fName = fName,
-                mName = mName,
-                lName = lName,
+                firstName = firstName,
+                middleName = middleName,
+                lastName = lastName,
+                status = status,
+                gender = gender,
                 placeOfBirth = placeOfBirth,
                 homeTown = homeTown,
-                dob = dob,
-                page = page!!,
-                size = size!!
+                dateOfBirth = dateOfBirth,
+                page = page.toInt(),
+                size = size.toInt()
             )
         }
     }

@@ -1,16 +1,19 @@
 package com.codex.controllers
 
+import com.codex.controllers.impl.UserControllerImpl
 import com.codex.domain.CODE_FAILURE
 import com.codex.domain.CODE_SERVICE_FAILURE
 import com.codex.domain.CODE_SERVICE_SUCCESS
 import com.codex.domain.CODE_SUCCESS
 import com.codex.exceptions.ServiceException
+import com.codex.models.CreateUserDTO
 import com.codex.models.FilterUserRequest
+import com.codex.models.UpdateUserDTO
 import com.codex.models.User
 import com.codex.repos.UserDAO
-import com.codex.util.LocalDateTimeTypeManufacturer
-import com.codex.util.LocalDateTypeManufacturer
-import com.codex.util.ObjectIdTypeManufacturer
+import com.codex.util.converters.LocalDateTimeTypeManufacturer
+import com.codex.util.converters.LocalDateTypeManufacturer
+import com.codex.util.converters.ObjectIdTypeManufacturer
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
@@ -61,12 +64,13 @@ class UserControllerImplTest {
     @Test
     fun `it should create a new user with a given user detail`() {
         //GIVEN
-        val newUser = factory.manufacturePojoWithFullData(User::class.java)
-        every { userDAOMockk.create(newUser) } returns newUser
+        val newUser = factory.manufacturePojoWithFullData(CreateUserDTO::class.java)
+        val savedUser = factory.manufacturePojoWithFullData(User::class.java)
+        every { userDAOMockk.create(any()) } returns savedUser
 
         //WHEN
         val expected = underTest.createUser(newUser)
-        verify { userDAOMockk.create(newUser) }
+        verify { userDAOMockk.create(any()) }
 
         //THEN
         Assertions.assertThat(expected.code).isEqualTo(CODE_SUCCESS)
@@ -78,15 +82,15 @@ class UserControllerImplTest {
     @Test
     fun `it should throw ServiceException when creating a user`() {
         //GIVEN
-        val newUser = factory.manufacturePojoWithFullData(User::class.java)
-        every { userDAOMockk.create(newUser) } throws
+        val newUser = factory.manufacturePojoWithFullData(CreateUserDTO::class.java)
+        every { userDAOMockk.create(any()) } throws
                 ServiceException(-4, "Failed to create user")
         //THEN
         assertThrows<ServiceException> {
             //WHEN
             underTest.createUser(newUser)
         }
-        verify { userDAOMockk.create(newUser) }
+        verify { userDAOMockk.create(any()) }
 
     }
 
@@ -250,14 +254,15 @@ class UserControllerImplTest {
     @Test
     fun `it should update an user with a new given user info`() {
         //GIVEN
-        val updatedUserData = factory.manufacturePojoWithFullData(User::class.java)
-        every { userDAOMockk.exists(updatedUserData.id) } returns true
-        every { userDAOMockk.update(updatedUserData) } returns updatedUserData
+        val updatedUserData = factory.manufacturePojoWithFullData(UpdateUserDTO::class.java)
+        val savedUser = factory.manufacturePojoWithFullData(User::class.java)
+        every { userDAOMockk.exists(any()) } returns true
+        every { userDAOMockk.update(any()) } returns savedUser
 
         //WHEN
         val expected = underTest.updateUser(updatedUserData)
-        verify { userDAOMockk.exists(updatedUserData.id) }
-        verify { userDAOMockk.update(updatedUserData) }
+        verify { userDAOMockk.exists(any()) }
+        verify { userDAOMockk.update(any()) }
 
         //THEN
         Assertions.assertThat(expected.data).isEqualTo(updatedUserData)
@@ -271,31 +276,31 @@ class UserControllerImplTest {
     @Test
     fun `it should throws ServiceException in the process of updating`() {
         //GIVEN
-        val updatedUserData = factory.manufacturePojoWithFullData(User::class.java)
-        every { userDAOMockk.exists(updatedUserData.id) } returns true
-        every { userDAOMockk.update(updatedUserData) } throws ServiceException(-4, "Failed to update user")
+        val updatedUserData = factory.manufacturePojoWithFullData(UpdateUserDTO::class.java)
+        every { userDAOMockk.exists(any()) } returns true
+        every { userDAOMockk.update(any()) } throws ServiceException(-4, "Failed to update user")
 
         //THEN
         assertThrows<ServiceException> {
             //WHEN
             underTest.updateUser(updatedUserData)
         }
-        verify { userDAOMockk.exists(updatedUserData.id) }
-        verify { userDAOMockk.update(updatedUserData) }
+        verify { userDAOMockk.exists(any()) }
+        verify { userDAOMockk.update(any()) }
     }
 
 
     @Test
     fun `it should delete a user with a given id`() {
         //GIVEN
-        val oneUser = factory.manufacturePojoWithFullData(User::class.java)
-        every { userDAOMockk.exists(oneUser.id) } returns true
-        every { userDAOMockk.delete(oneUser.id) } returns 1L
+        val oneUserID = ObjectId("6531129a47cd2414681c3657")
+        every { userDAOMockk.exists(oneUserID) } returns true
+        every { userDAOMockk.delete(oneUserID) } returns 1L
 
         //WHEN
-        val expected = underTest.deleteUser(oneUser.id)
-        verify { userDAOMockk.exists(oneUser.id) }
-        verify { userDAOMockk.delete(oneUser.id) }
+        val expected = underTest.deleteUser(oneUserID.toHexString())
+        verify { userDAOMockk.exists(oneUserID) }
+        verify { userDAOMockk.delete(oneUserID) }
 
         //THEN
         Assertions.assertThat(expected.data).isEqualTo(true)
@@ -311,7 +316,7 @@ class UserControllerImplTest {
         every { userDAOMockk.get(userID) } returns null
 
         //WHEN
-        val expected = underTest.deleteUser(userID)
+        val expected = underTest.deleteUser(userID.toHexString())
         verify { userDAOMockk.exists(userID) }
         verify(exactly = 0) { userDAOMockk.get(userID) }
 

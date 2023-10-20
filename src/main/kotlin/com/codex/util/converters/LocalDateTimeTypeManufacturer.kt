@@ -1,5 +1,6 @@
-package com.codex.util
+package com.codex.util.converters
 
+import com.codex.util.JacksonUtils
 import uk.co.jemos.podam.api.AttributeMetadata
 import uk.co.jemos.podam.api.DataProviderStrategy
 import uk.co.jemos.podam.typeManufacturers.TypeManufacturer
