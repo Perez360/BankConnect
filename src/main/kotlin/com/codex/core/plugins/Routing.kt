@@ -1,4 +1,4 @@
-package com.codex.plugins
+package com.codex.core.plugins
 
 import com.codex.domain.UserRequestContext
 import com.codex.logger

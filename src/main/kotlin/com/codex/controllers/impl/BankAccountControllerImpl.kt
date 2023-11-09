@@ -1,10 +1,11 @@
 package com.codex.controllers.impl
 
 import com.codex.controllers.BankAccountController
+import com.codex.enums.SystemErrorCode
 import com.codex.exceptions.ServiceException
 import com.codex.models.BankAccount
 import com.codex.models.FilterBankAccountRequest
-import com.codex.repos.BankAccountDAO
+import com.codex.repos.BankAccountRepo
 import com.codex.shared.APIResponse
 import com.codex.util.validators.BankAccountValidator
 import com.codex.util.wrapFailureInResponse
@@ -15,12 +16,15 @@ import org.kodein.di.DIAware
 import org.kodein.di.instance
 
 class BankAccountControllerImpl(override val di: DI) : BankAccountController, DIAware {
-    private val bankAccountDAO: BankAccountDAO by di.instance<BankAccountDAO>()
+    private val bankAccountDAO: BankAccountRepo by di.instance<BankAccountRepo>()
     override fun createBankAccount(bankAccount: BankAccount): APIResponse<BankAccount> {
         //Validating bank account details
         BankAccountValidator.validate(bankAccount)
 
-        val newUser = bankAccountDAO.create(bankAccount) ?: throw ServiceException(-4, "Failed to save bank account")
+        val newUser = bankAccountDAO.create(bankAccount) ?: throw ServiceException(
+            SystemErrorCode.INTERNAL_SERVER_ERROR,
+            "Failed to save bank account"
+        )
         return wrapSuccessInResponse(newUser)
     }
 
@@ -39,7 +43,10 @@ class BankAccountControllerImpl(override val di: DI) : BankAccountController, DI
         if (!isBankAccountExists) return wrapFailureInResponse("BankAccount does not exist with this ID: ${bankAccount.id}")
 
         val updatedBankAccount =
-            bankAccountDAO.update(bankAccount) ?: throw ServiceException(-4, "Failed to update bank account")
+            bankAccountDAO.update(bankAccount) ?: throw ServiceException(
+                SystemErrorCode.INTERNAL_SERVER_ERROR,
+                "Failed to update bank account"
+            )
         return wrapSuccessInResponse(updatedBankAccount)
     }
 
@@ -53,18 +60,21 @@ class BankAccountControllerImpl(override val di: DI) : BankAccountController, DI
         return wrapSuccessInResponse(listOfBankAccount)
     }
 
-    override fun deleteBankAccount(id: ObjectId): APIResponse<Boolean> {
+    override fun deleteBankAccount(id: ObjectId): APIResponse<BankAccount> {
         val isUserExists = bankAccountDAO.exists(id)
         if (!isUserExists) return wrapFailureInResponse("BankAccount does not exist with this ID: $id")
 
-        val deleteCount = bankAccountDAO.delete(id)
-        if (deleteCount < 1) throw ServiceException(-4, "Failed to delete bank account")
-        return wrapSuccessInResponse(true)
+        val deletedAccount = bankAccountDAO.delete(id)
+            ?: throw ServiceException(SystemErrorCode.INTERNAL_SERVER_ERROR, "Failed to delete bank account")
+        return wrapSuccessInResponse(deletedAccount)
     }
 
     override fun deleteAllBankAccounts(): APIResponse<Boolean> {
         val deleteCount = bankAccountDAO.deleteAll()
-        if (deleteCount < 1) throw ServiceException(-4, "Failed to delete all bank accounts")
+        if (deleteCount < 1) throw ServiceException(
+            SystemErrorCode.INTERNAL_SERVER_ERROR,
+            "Failed to delete all bank accounts"
+        )
         return wrapSuccessInResponse(true)
     }
 }

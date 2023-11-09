@@ -11,7 +11,7 @@ import dev.morphia.query.experimental.filters.Filters
 import org.bson.types.ObjectId
 import java.util.regex.Pattern
 
-class BankAccountService(private val dataStore: Datastore) : BankAccountDAO {
+class BankAccountService(private val dataStore: Datastore) : BankAccountRepo {
 
     override fun create(bankAccount: BankAccount): BankAccount? = dataStore.withTransaction {
         dataStore.save(bankAccount)
@@ -51,20 +51,20 @@ class BankAccountService(private val dataStore: Datastore) : BankAccountDAO {
                 filterBankAccountRequest.accountType?.let { filter(Filters.eq("accType", it)) }
                 filterBankAccountRequest.accountStatus?.let { filter(Filters.eq("accStatus", it)) }
                 filterBankAccountRequest.accountBalance?.let { filter(Filters.eq("accBal", it)) }
-                filterBankAccountRequest.dataCreated?.let { filter(Filters.eq("datCreated", it)) }
+                filterBankAccountRequest.dataCreated?.let { filter(Filters.eq("createdAt", it)) }
 
                 iterator(
-                    FindOptions().skip(filterBankAccountRequest.page)
-                        .limit((filterBankAccountRequest.page - 1) * filterBankAccountRequest.size)
-                        .sort(Sort.descending(BankAccount::dateCreated.name))
+                    FindOptions().skip((filterBankAccountRequest.page - 1))
+                        .limit(filterBankAccountRequest.size)
+                        .sort(Sort.descending("createdAt"))
                 )
             }.toList()
         }
 
-    override fun delete(id: ObjectId): Long = dataStore.withTransaction {
+    override fun delete(id: ObjectId): BankAccount? = dataStore.withTransaction {
         dataStore.find(BankAccount::class.java)
             .filter(Filters.eq("id", id))
-            .delete(DeleteOptions()).deletedCount
+            .findAndDelete()
     }
 
     override fun deleteAll(): Long = dataStore.withTransaction {

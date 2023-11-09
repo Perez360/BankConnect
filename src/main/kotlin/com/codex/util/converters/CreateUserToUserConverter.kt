@@ -1,9 +1,8 @@
 package com.codex.util.converters
 
-import com.codex.models.CreateUserDTO
+import com.codex.dtos.CreateUserDTO
 import com.codex.models.User
 import com.codex.util.validators.DateTimeOperations
-import dev.morphia.mapping.experimental.MorphiaReference
 import org.modelmapper.Converter
 import org.modelmapper.spi.MappingContext
 

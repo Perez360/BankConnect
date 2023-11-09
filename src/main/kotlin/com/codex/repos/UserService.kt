@@ -3,25 +3,29 @@ package com.codex.repos
 import com.codex.models.FilterUserRequest
 import com.codex.models.PaginationModel
 import com.codex.models.User
-import com.codex.util.JacksonUtils
+import com.codex.models.toPaginationModel
 import dev.morphia.Datastore
 import dev.morphia.DeleteOptions
 import dev.morphia.InsertOneOptions
 import dev.morphia.query.FindOptions
 import dev.morphia.query.Query
 import dev.morphia.query.Sort
+import dev.morphia.query.experimental.filters.Filter
 import dev.morphia.query.experimental.filters.Filters
 import org.bson.types.ObjectId
-import java.text.SimpleDateFormat
-import java.time.LocalDateTime
-import kotlin.math.ceil
 
-class UserService(private val dataStore: Datastore) : UserDAO {
+class UserService(private val dataStore: Datastore) : UserRepo {
+
 
     override fun create(user: User): User? = dataStore.withTransaction {
         dataStore.save(user)
     }
 
+    override fun get(email: String): User? = dataStore.withTransaction {
+        dataStore.find(User::class.java)
+            .filter(Filters.eq("email", email))
+            .first()
+    }
 
     override fun get(id: ObjectId): User? = dataStore.withTransaction {
         dataStore.find(User::class.java)
@@ -29,73 +33,51 @@ class UserService(private val dataStore: Datastore) : UserDAO {
             .first()
     }
 
-    override fun exists(id: ObjectId): Boolean {
-        return dataStore.find(User::class.java)
+    override fun exists(id: ObjectId): Boolean = dataStore.withTransaction {
+        dataStore.find(User::class.java)
             .filter(Filters.eq("id", id))
             .any()
     }
 
     override fun update(updateUser: User): User = dataStore.withTransaction {
-        dataStore.merge(updateUser, InsertOneOptions().unsetMissing(true))
+        dataStore.merge(updateUser, InsertOneOptions().unsetMissing(false))
     }
 
-    override fun list(page: Int?, size: Int?): PaginationModel<List<User>> = dataStore.withTransaction {
-        val startIndex = page ?: 1
-        val endIndex = size ?: 10
-
-
-        val query:Query<User> = dataStore.find(User::class.java)
-//        val totalItems
-
-
-
-//            .iterator(FindOptions().skip(startIndex).limit((startIndex - 1) * endIndex).sort(Sort.descending("dob")))
-//            .toList()
-
-        val totalPages: Int = ceil(co / endIndex.toDouble()).toInt()
-        PaginationModel.from(startIndex, endIndex, totalPages, totalItems, listOfUsers)
+    override fun list(page: Int, size: Int): PaginationModel<List<User>> = dataStore.withTransaction {
+        dataStore.find(User::class.java)
+            .iterator(FindOptions().skip((page - 1)).limit(size))
+            .toList().toPaginationModel(page, size)
     }
 
-    override fun filter(filterUserRequest: FilterUserRequest): PaginationModel<List<User>> = dataStore.withTransaction {
-        val query: Query<User> = dataStore.find(User::class.java)
+    override fun filter(filterUserRequest: FilterUserRequest): PaginationModel<List<User>> =
+        dataStore.withTransaction { _ ->
+            val query: Query<User> = dataStore.find(User::class.java)
+            val filters = mutableListOf<Filter>()
 
-        query.apply {
-            filterUserRequest.firstName?.let { filter(Filters.eq("fName", it)) }
-            filterUserRequest.middleName?.let { filter(Filters.eq("mName", it)) }
-            filterUserRequest.status?.let { filter(Filters.eq("status", it)) }
-            filterUserRequest.lastName?.let { filter(Filters.eq("lName", it)) }
-            filterUserRequest.gender?.let { filter(Filters.eq("gender", it)) }
-            filterUserRequest.placeOfBirth?.let { filter(Filters.eq("pob", it)) }
-            filterUserRequest.homeTown?.let { filter(Filters.eq("homeTown", it)) }
-            filterUserRequest.dateOfBirth?.let { filter(Filters.eq("dob", it)) }
+            filterUserRequest.firstName?.let { filters.add(Filters.regex("fName").pattern(it).caseInsensitive()) }
+            filterUserRequest.middleName?.let { filters.add(Filters.regex("mName").pattern(it).caseInsensitive()) }
+            filterUserRequest.lastName?.let { filters.add(Filters.regex("lName").pattern(it).caseInsensitive()) }
+            filterUserRequest.status?.let { filters.add(Filters.eq("status", it)) }
+            filterUserRequest.gender?.let { filters.add(Filters.eq("gender", it)) }
+            filterUserRequest.placeOfBirth?.let { filters.add(Filters.eq("pob", it)) }
+            filterUserRequest.homeTown?.let { filters.add(Filters.eq("homeTown", it)) }
+            filterUserRequest.dateOfBirth?.let { filters.add(Filters.eq("dob", it)) }
 
-            iterator(
-                FindOptions().skip(filterUserRequest.page).limit((filterUserRequest.page - 1) * filterUserRequest.size)
+            query.filter(Filters.and(*filters.toTypedArray())).iterator(
+                FindOptions().skip((filterUserRequest.page - 1)).limit(filterUserRequest.size)
                     .sort(Sort.descending("dob"))
-            )
+            ).toList().toPaginationModel(filterUserRequest.page, filterUserRequest.size)
         }
-
-        val totalElements = query.count()
-        val totalPages: Int = ceil(totalElements / filterUserRequest.size.toDouble()).toInt()
-
-        PaginationModel.from(
-            page = filterUserRequest.page,
-            size = filterUserRequest.size,
-            totalPages = totalPages,
-            totalElements = totalElements,
-            query.toList()
-        )
-    }
 
     override fun count(): Long = dataStore.withTransaction {
         dataStore.find(User::class.java)
             .count()
     }
 
-    override fun delete(id: ObjectId): Long = dataStore.withTransaction {
+    override fun delete(id: ObjectId): User? = dataStore.withTransaction {
         dataStore.find(User::class.java)
             .filter(Filters.eq("id", id))
-            .delete(DeleteOptions()).deletedCount
+            .findAndDelete()
     }
 
     override fun deleteAll(): Long = dataStore.withTransaction {

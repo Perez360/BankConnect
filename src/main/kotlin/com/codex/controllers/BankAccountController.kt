@@ -12,6 +12,6 @@ interface BankAccountController {
     fun updateBankAccount(bankAccount: BankAccount): APIResponse<BankAccount>
     fun listBankAccounts(page: Int, size: Int): APIResponse<List<BankAccount>>
     fun filterBankAccounts(filterBankAccountRequest: FilterBankAccountRequest): APIResponse<List<BankAccount>>
-    fun deleteBankAccount(id: ObjectId): APIResponse<Boolean>
+    fun deleteBankAccount(id: ObjectId): APIResponse<BankAccount>
     fun deleteAllBankAccounts(): APIResponse<Boolean>
 }

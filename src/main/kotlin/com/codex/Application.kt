@@ -2,11 +2,7 @@ package com.codex
 
 import com.codex.core.config.Configuration
 import com.codex.core.config.MongoDatabaseFactory
-import com.codex.core.plugins.configureExceptions
-import com.codex.core.plugins.configureHTTP
-import com.codex.plugins.configureDI
-import com.codex.plugins.configureRouting
-import com.codex.plugins.configureSerialization
+import com.codex.core.plugins.*
 import io.ktor.server.application.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

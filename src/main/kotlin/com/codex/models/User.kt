@@ -1,8 +1,11 @@
 package com.codex.models
 
+import com.codex.dtos.CreateUserDTO
+import com.codex.dtos.UpdateUserDTO
 import com.codex.enums.Gender
 import com.codex.enums.UserStatus
 import com.codex.util.listeners.UserEntityListener
+import com.codex.util.validators.DateTimeOperations
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import dev.morphia.annotations.*
 import org.bson.types.ObjectId
@@ -15,12 +18,12 @@ import java.time.LocalDate
     Index(
         fields = [
             Field("id"),
-            Field("firstName"),
-            Field("middleName"),
-            Field("lastName"),
-            Field("placeOfBirth"),
+            Field("fName"),
+            Field("mName"),
+            Field("lName"),
+            Field("pob"),
             Field("homeTown"),
-            Field("dateOfBirth"),
+            Field("dob"),
         ], options = IndexOptions(background = true)
     )
 )
@@ -44,36 +47,43 @@ data class User(
     var msisdn: String,
     var password: String,
     var version: Long = 1L,
-)
+) {
+    companion object {
+        fun fromCreateUserDTO(createUserDTO: CreateUserDTO): User {
+            return User(
+                id = ObjectId(),
+                firstName = createUserDTO.firstName,
+                lastName = createUserDTO.lastName,
+                middleName = createUserDTO.middleName,
+                homeTown = createUserDTO.homeTown,
+                dateOfBirth = DateTimeOperations.validateLocalDateAndParse(createUserDTO.dateOfBirth),
+                placeOfBirth = createUserDTO.placeOfBirth,
+                contacts = createUserDTO.contacts,
+                status = createUserDTO.status,
+                msisdn = createUserDTO.msisdn,
+                password = createUserDTO.password,
+                gender = createUserDTO.gender
+            )
+        }
+        fun fromUpdateUserDTO(updateUserDTO: UpdateUserDTO): User {
+            return User(
+                id = ObjectId(updateUserDTO.id),
+                firstName = updateUserDTO.firstName,
+                lastName = updateUserDTO.lastName,
+                middleName = updateUserDTO.middleName,
+                homeTown = updateUserDTO.homeTown,
+                dateOfBirth = DateTimeOperations.validateLocalDateAndParse(updateUserDTO.dateOfBirth),
+                placeOfBirth = updateUserDTO.placeOfBirth,
+                contacts = updateUserDTO.contacts,
+                status = updateUserDTO.status,
+                msisdn = updateUserDTO.msisdn,
+                password = updateUserDTO.password,
+                gender = updateUserDTO.gender
+            )
+        }
+    }
+}
 
-data class CreateUserDTO(
-    val firstName: String,
-    val middleName: String,
-    val lastName: String,
-    val placeOfBirth: String,
-    val homeTown: String,
-    val contacts: MutableList<Contact>,
-    val dateOfBirth: String,
-    val gender: Gender,
-    val status: UserStatus,
-    val msisdn: String,
-    val password: String
-)
-
-data class UpdateUserDTO(
-    val id: String,
-    val firstName: String,
-    val middleName: String,
-    val lastName: String,
-    val placeOfBirth: String,
-    val homeTown: String,
-    val contacts: MutableList<Contact>,
-    val dateOfBirth: String,
-    val gender: Gender,
-    val status: UserStatus,
-    val msisdn: String,
-    val password: String
-)
 
 
 data class FilterUserRequest(
@@ -81,7 +91,7 @@ data class FilterUserRequest(
     var middleName: String? = null,
     var lastName: String? = null,
     var gender: String? = null,
-    var status: String? = null,
+    var status: String? = UserStatus.ACTIVE.name,
     var placeOfBirth: String? = null,
     var homeTown: String? = null,
     val dateOfBirth: String? = null,
@@ -93,7 +103,7 @@ data class FilterUserRequest(
             val firstName: String? by map.withDefault { null }
             val middleName: String? by map.withDefault { null }
             val lastName: String? by map.withDefault { null }
-            val status: String? by map.withDefault { null }
+            val status: String? by map.withDefault { UserStatus.ACTIVE.name }
             val gender: String? by map.withDefault { null }
             val placeOfBirth: String? by map.withDefault { null }
             val homeTown: String? by map.withDefault { null }

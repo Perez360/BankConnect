@@ -19,6 +19,7 @@
         <morphia.version>2.2.10</morphia.version>
         <jackson.version>2.13.0</jackson.version>
         <kodein.version>7.20.2</kodein.version>
+        <caffeine.version>3.1.5</caffeine.version>
         <assertj-core.version>3.24.2</assertj-core.version>
         <mockk.version>1.12.0</mockk.version>
         <junit-jupiter.version>5.10.0</junit-jupiter.version>
@@ -204,6 +205,12 @@
             <version>3.0.0</version>
         </dependency>
 
+
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>${caffeine.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>

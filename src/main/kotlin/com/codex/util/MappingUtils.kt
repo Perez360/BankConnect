@@ -1,7 +1,5 @@
 package com.codex.util
 
-import com.codex.util.converters.CreateUserToUserConverter
-import com.codex.util.converters.UpdateUserToUserConverter
 import org.modelmapper.ModelMapper
 import org.modelmapper.config.Configuration
 import org.modelmapper.convention.MatchingStrategies
@@ -13,8 +11,8 @@ class MapperDto : ModelMapper() {
         configuration.isFieldMatchingEnabled = true
         configuration.isSkipNullEnabled = true
 
-        addConverter(CreateUserToUserConverter())
-        addConverter(UpdateUserToUserConverter())
+//        addConverter(CreateUserToUserConverter())
+//        addConverter(UpdateUserToUserConverter())
     }
 }
 

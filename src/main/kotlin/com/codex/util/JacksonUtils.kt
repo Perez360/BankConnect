@@ -1,6 +1,6 @@
 package com.codex.util
 
-import com.codex.util.converters.CustomModule
+import com.codex.util.serializers.CustomModule
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature

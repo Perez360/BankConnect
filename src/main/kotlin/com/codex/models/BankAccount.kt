@@ -12,12 +12,12 @@ import java.time.LocalDateTime
 @Indexes(
     Index(
         fields = [
-            Field("accountNumber"),
-            Field("accountStatus"),
-            Field("accountType"),
-            Field("accountNumber"),
-            Field("accountBalance"),
-            Field("dateCreated"),
+            Field("bankName"),
+            Field("accStatus"),
+            Field("accType"),
+            Field("accNum"),
+            Field("accBal"),
+            Field("createdAt"),
         ], options = IndexOptions(background = true)
     )
 )
@@ -37,7 +37,7 @@ data class BankAccount(
     val accountBalance: Double,
     val pin: String,
     val lastDeposit: LocalDateTime,
-    val dateCreated: LocalDateTime,
+    val createdAt: LocalDateTime,
 )
 
 data class FilterBankAccountRequest(
@@ -72,7 +72,6 @@ data class FilterBankAccountRequest(
                 size = size!!
 
             )
-
         }
     }
 }

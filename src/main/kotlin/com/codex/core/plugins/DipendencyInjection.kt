@@ -1,4 +1,4 @@
-package com.codex.plugins
+package com.codex.core.plugins
 
 import com.codex.controllers.impl.BankAccountControllerImpl
 import com.codex.controllers.impl.UserControllerImpl

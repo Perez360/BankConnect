@@ -1,21 +1,21 @@
 package com.codex.models
 
+import kotlin.math.ceil
+
 data class PaginationModel<T>(
     val page: Int,
     val size: Int,
     val totalPages: Int,
-    val totalElements: Long,
+    val totalElements: Int,
     val data: T
-) {
-    companion object {
-        fun <T> from(page: Int, size: Int, totalPages: Int, totalElements: Long, data: T): PaginationModel<T> {
-            return PaginationModel(
-                page = page,
-                size = size,
-                totalPages = totalPages,
-                totalElements = totalElements,
-                data = data
-            )
-        }
-    }
+)
+
+fun <E> List<E>.toPaginationModel(page: Int, size: Int): PaginationModel<List<E>> {
+    return PaginationModel(
+        page = page,
+        size = size,
+        totalPages = ceil(this.size / 10.0).toInt(),
+        totalElements = this.size,
+        data = this
+    )
 }

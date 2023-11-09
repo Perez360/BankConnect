@@ -1,6 +1,5 @@
-package com.codex.util.converters
+package com.codex.util.serializers
 
-import com.codex.logger
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider

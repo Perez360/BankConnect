@@ -5,9 +5,9 @@ import com.codex.core.config.MongoDatabaseFactory
 import com.codex.exceptions.ServiceException
 import com.codex.models.FilterUserRequest
 import com.codex.models.User
-import com.codex.util.converters.LocalDateTimeTypeManufacturer
-import com.codex.util.converters.LocalDateTypeManufacturer
-import com.codex.util.converters.ObjectIdTypeManufacturer
+import com.codex.util.factories.LocalDateTimeTypeManufacturer
+import com.codex.util.factories.LocalDateTypeManufacturer
+import com.codex.util.factories.ObjectIdTypeManufacturer
 import dev.morphia.query.UpdateException
 import org.assertj.core.api.Assertions
 import org.bson.types.ObjectId
@@ -23,7 +23,7 @@ import java.time.LocalDateTime
 class UserServiceTest {
     private lateinit var factory: PodamFactory
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
-    private lateinit var underTest: UserDAO
+    private lateinit var underTest: UserRepo
     private var listOfSavedUsers: MutableList<User> = mutableListOf()
 
     init {

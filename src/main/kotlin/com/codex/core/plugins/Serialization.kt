@@ -1,4 +1,4 @@
-package com.codex.plugins
+package com.codex.core.plugins
 
 import com.codex.util.JacksonUtils
 import io.ktor.http.*

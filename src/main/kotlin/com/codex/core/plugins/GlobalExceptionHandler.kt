@@ -1,7 +1,7 @@
 package com.codex.core.plugins
 
 
-
+import com.codex.enums.SystemErrorCode.*
 import com.codex.exceptions.ServiceException
 import com.codex.util.wrapFailureInResponse
 import io.ktor.http.*
@@ -92,22 +92,22 @@ fun Application.configureExceptions() {
             val errorResponse = wrapFailureInResponse<String>(message)
             var httpStatusCode = HttpStatusCode.InternalServerError
 
-            if (cause.code == 0)
+            if (cause.code == OK)
                 httpStatusCode = HttpStatusCode.OK
 
-            if (cause.code == -2)
+            if (cause.code == BAD_REQUEST)
                 httpStatusCode = HttpStatusCode.BadRequest
 
-            if (cause.code == -3)
+            if (cause.code == NOT_IMPLEMENTED)
                 httpStatusCode = HttpStatusCode.NotImplemented
 
-            if (cause.code == -4)
+            if (cause.code == NOT_IMPLEMENTED)
                 httpStatusCode = HttpStatusCode.NotModified
 
-            if (cause.code == -5)
+            if (cause.code == FAILED_DEPENDENCY)
                 httpStatusCode = HttpStatusCode.FailedDependency
 
-            if (cause.code == -6)
+            if (cause.code == UNAUTHORIZED)
                 httpStatusCode = HttpStatusCode.Unauthorized
 
 

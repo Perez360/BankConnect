@@ -1,20 +1,16 @@
 package com.codex.util.listeners
 
-import com.codex.logger
+import com.codex.core.config.UserCacheManager
 import com.codex.models.User
 import dev.morphia.annotations.PostPersist
-import dev.morphia.annotations.PrePersist
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class UserEntityListener {
-    @PrePersist
-    fun prePersist(user: User) {
-        //TODO
-        logger.info("User entity about to saved. $user")
-    }
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     @PostPersist
     fun postPersist(user: User) {
-        //TODO
-        logger.info("User entity saved $user")
+        UserCacheManager.cache(user)
     }
 }

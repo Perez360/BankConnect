@@ -1,11 +1,11 @@
-package com.codex.util.converters
+package com.codex.util.factories
 
 import com.codex.util.JacksonUtils
 import uk.co.jemos.podam.api.AttributeMetadata
 import uk.co.jemos.podam.api.DataProviderStrategy
 import uk.co.jemos.podam.typeManufacturers.TypeManufacturer
 import java.lang.reflect.Type
-import java.time.LocalDateTime
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.random.Random
 
@@ -13,20 +13,17 @@ import kotlin.random.Random
  * Used to generate date ahead of today
  * */
 
-class LocalDateTimeTypeManufacturer : TypeManufacturer<LocalDateTime> {
+class LocalDateTypeManufacturer : TypeManufacturer<LocalDate> {
     override fun getType(
         p0: DataProviderStrategy?,
         p1: AttributeMetadata?,
         p2: MutableMap<String, Type>?
-    ): LocalDateTime {
+    ): LocalDate {
 
-        val dateToString = LocalDateTime.now()
+        val dateToString = LocalDate.now()
             .plusDays(Random.nextLong(7))
-            .plusHours(Random.nextLong(24))
-            .plusMinutes(Random.nextLong(60))
-            .plusSeconds(Random.nextLong(60))
-            .format(DateTimeFormatter.ofPattern(JacksonUtils.dateTimePattern))
+            .format(DateTimeFormatter.ofPattern(JacksonUtils.datePattern))
 
-        return LocalDateTime.parse(dateToString)
+        return LocalDate.parse(dateToString)
     }
 }

@@ -10,6 +10,7 @@ object Configuration {
     private val log = LoggerFactory.getLogger(this::class.java)
     private const val internalFile = "application.properties"
     private const val externalFile = "configurations/application.properties"
+    val CACHING_STATUS = System.getProperty("service.caching.enabled", "false").toBooleanStrict()
     var systemPropertiesFilePath: String? = null
     var commandLineFile: String = ""
     private lateinit var systemProperties: Properties

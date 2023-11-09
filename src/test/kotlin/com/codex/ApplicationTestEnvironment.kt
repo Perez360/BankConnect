@@ -2,8 +2,8 @@ package com.codex
 
 import com.codex.core.config.Configuration
 import com.codex.core.config.MongoDatabaseFactory
-import com.codex.plugins.configureRouting
-import com.codex.plugins.configureSerialization
+import com.codex.core.plugins.configureRouting
+import com.codex.core.plugins.configureSerialization
 import io.ktor.server.application.*
 
 

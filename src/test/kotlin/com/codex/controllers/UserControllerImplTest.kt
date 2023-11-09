@@ -10,10 +10,10 @@ import com.codex.models.CreateUserDTO
 import com.codex.models.FilterUserRequest
 import com.codex.models.UpdateUserDTO
 import com.codex.models.User
-import com.codex.repos.UserDAO
-import com.codex.util.converters.LocalDateTimeTypeManufacturer
-import com.codex.util.converters.LocalDateTypeManufacturer
-import com.codex.util.converters.ObjectIdTypeManufacturer
+import com.codex.repos.UserRepo
+import com.codex.util.factories.LocalDateTimeTypeManufacturer
+import com.codex.util.factories.LocalDateTypeManufacturer
+import com.codex.util.factories.ObjectIdTypeManufacturer
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
@@ -35,7 +35,7 @@ class UserControllerImplTest {
     private lateinit var log: Logger
     private lateinit var factory: PodamFactory
     private lateinit var underTest: UserController
-    private lateinit var userDAOMockk: UserDAO
+    private lateinit var userRepoMockk: UserRepo
     private lateinit var di: DI
     private lateinit var listOfUsers: List<User>
 
@@ -49,9 +49,9 @@ class UserControllerImplTest {
         listOfUsers = factory.manufacturePojoWithFullData(List::class.java, User::class.java) as List<User>
 
 
-        userDAOMockk = mockk(relaxed = true)
+        userRepoMockk = mockk(relaxed = true)
         di = DI {
-            bindSingleton { userDAOMockk }
+            bindSingleton { userRepoMockk }
         }
         underTest = UserControllerImpl(di)
     }
@@ -66,11 +66,11 @@ class UserControllerImplTest {
         //GIVEN
         val newUser = factory.manufacturePojoWithFullData(CreateUserDTO::class.java)
         val savedUser = factory.manufacturePojoWithFullData(User::class.java)
-        every { userDAOMockk.create(any()) } returns savedUser
+        every { userRepoMockk.create(any()) } returns savedUser
 
         //WHEN
         val expected = underTest.createUser(newUser)
-        verify { userDAOMockk.create(any()) }
+        verify { userRepoMockk.create(any()) }
 
         //THEN
         Assertions.assertThat(expected.code).isEqualTo(CODE_SUCCESS)
@@ -83,14 +83,14 @@ class UserControllerImplTest {
     fun `it should throw ServiceException when creating a user`() {
         //GIVEN
         val newUser = factory.manufacturePojoWithFullData(CreateUserDTO::class.java)
-        every { userDAOMockk.create(any()) } throws
+        every { userRepoMockk.create(any()) } throws
                 ServiceException(-4, "Failed to create user")
         //THEN
         assertThrows<ServiceException> {
             //WHEN
             underTest.createUser(newUser)
         }
-        verify { userDAOMockk.create(any()) }
+        verify { userRepoMockk.create(any()) }
 
     }
 
@@ -99,11 +99,11 @@ class UserControllerImplTest {
         //GIVEN
         val userID = ObjectId()
         val oneUser = factory.manufacturePojoWithFullData(User::class.java)
-        every { userDAOMockk.get(userID) } returns oneUser
+        every { userRepoMockk.get(userID) } returns oneUser
 
         //WHEN
         val expected = underTest.getUserById(userID.toHexString())
-        verify { userDAOMockk.get(userID) }
+        verify { userRepoMockk.get(userID) }
 
         //THEN
         Assertions.assertThat(expected).isNotNull
@@ -116,11 +116,11 @@ class UserControllerImplTest {
     fun `it cannot get a user with a given id because user does not exists in DB`() {
         //GIVEN
         val userID = ObjectId()
-        every { userDAOMockk.get(userID) } returns null
+        every { userRepoMockk.get(userID) } returns null
 
         //WHEN
         val expected = underTest.getUserById(userID.toHexString())
-        verify { userDAOMockk.get(userID) }
+        verify { userRepoMockk.get(userID) }
 
         //THEN
         Assertions.assertThat(expected.data).isNull()
@@ -132,7 +132,7 @@ class UserControllerImplTest {
     fun `it should throw ServiceException when getting a user using given id`() {
         //GIVEN
         val userID = ObjectId()
-        every { userDAOMockk.get(userID) } throws
+        every { userRepoMockk.get(userID) } throws
                 ServiceException(-1, "Error fetching  user")
 
         //THEN
@@ -141,7 +141,7 @@ class UserControllerImplTest {
             underTest.getUserById(userID.toHexString())
         }
 
-        verify { userDAOMockk.get(userID) }
+        verify { userRepoMockk.get(userID) }
     }
 
 
@@ -150,11 +150,11 @@ class UserControllerImplTest {
         //GIVEN
         val page = 1
         val size = 100
-        every { userDAOMockk.list(page, size) } returns listOfUsers
+        every { userRepoMockk.list(page, size) } returns listOfUsers
 
         //WHEN
         val expected = underTest.listUsers(page, size)
-        verify { userDAOMockk.list(page, size) }
+        verify { userRepoMockk.list(page, size) }
 
         //THEN
         Assertions.assertThat(expected.data).isEqualTo(listOfUsers)
@@ -169,11 +169,11 @@ class UserControllerImplTest {
         //GIVEN
         val page = 1
         val size = 100
-        every { userDAOMockk.list(page, size) } returns emptyList()
+        every { userRepoMockk.list(page, size) } returns emptyList()
 
         //WHEN
         val expected = underTest.listUsers(page, size)
-        verify { userDAOMockk.list(page, size) }
+        verify { userRepoMockk.list(page, size) }
 
         //THEN
         Assertions.assertThat(expected.data).isEqualTo(emptyList<User>())
@@ -187,7 +187,7 @@ class UserControllerImplTest {
         //GIVEN
         val page = 1
         val size = 100
-        every { userDAOMockk.list(page, size) } throws
+        every { userRepoMockk.list(page, size) } throws
                 ServiceException(-4, "Unable to list users")
 
         //THEN
@@ -196,18 +196,18 @@ class UserControllerImplTest {
             underTest.listUsers(page, size)
         }
 
-        verify { userDAOMockk.list(page, size) }
+        verify { userRepoMockk.list(page, size) }
     }
 
     @Test
     fun `it should filter no users`() {
         //GIVEN
         val filterRequest = factory.manufacturePojoWithFullData(FilterUserRequest::class.java)
-        every { userDAOMockk.filter(filterRequest) } returns emptyList()
+        every { userRepoMockk.filter(filterRequest) } returns emptyList()
 
         //WHEN
         val expected = underTest.filterUsers(filterRequest)
-        verify { userDAOMockk.filter(filterRequest) }
+        verify { userRepoMockk.filter(filterRequest) }
 
         //THEN
         Assertions.assertThat(expected.data).isEqualTo(emptyList<User>())
@@ -220,11 +220,11 @@ class UserControllerImplTest {
     fun `it should filter some users`() {
         //GIVEN
         val filterRequest = factory.manufacturePojoWithFullData(FilterUserRequest::class.java)
-        every { userDAOMockk.filter(filterRequest) } returns listOfUsers
+        every { userRepoMockk.filter(filterRequest) } returns listOfUsers
 
         //WHEN
         val expected = underTest.filterUsers(filterRequest)
-        verify { userDAOMockk.filter(filterRequest) }
+        verify { userRepoMockk.filter(filterRequest) }
 
         //THEN
         Assertions.assertThat(expected.data).isEqualTo(listOfUsers)
@@ -238,7 +238,7 @@ class UserControllerImplTest {
     fun `it should throw ServiceException when filtering  users`() {
         //GIVEN
         val filterRequest = factory.manufacturePojoWithFullData(FilterUserRequest::class.java)
-        every { userDAOMockk.filter(filterRequest) } throws
+        every { userRepoMockk.filter(filterRequest) } throws
                 ServiceException(-4, "Unable to filter users")
 
         //THEN
@@ -247,7 +247,7 @@ class UserControllerImplTest {
             underTest.filterUsers(filterRequest)
         }
 
-        verify { userDAOMockk.filter(filterRequest) }
+        verify { userRepoMockk.filter(filterRequest) }
     }
 
 
@@ -256,13 +256,13 @@ class UserControllerImplTest {
         //GIVEN
         val updatedUserData = factory.manufacturePojoWithFullData(UpdateUserDTO::class.java)
         val savedUser = factory.manufacturePojoWithFullData(User::class.java)
-        every { userDAOMockk.exists(any()) } returns true
-        every { userDAOMockk.update(any()) } returns savedUser
+        every { userRepoMockk.exists(any()) } returns true
+        every { userRepoMockk.update(any()) } returns savedUser
 
         //WHEN
         val expected = underTest.updateUser(updatedUserData)
-        verify { userDAOMockk.exists(any()) }
-        verify { userDAOMockk.update(any()) }
+        verify { userRepoMockk.exists(any()) }
+        verify { userRepoMockk.update(any()) }
 
         //THEN
         Assertions.assertThat(expected.data).isEqualTo(updatedUserData)
@@ -277,16 +277,16 @@ class UserControllerImplTest {
     fun `it should throws ServiceException in the process of updating`() {
         //GIVEN
         val updatedUserData = factory.manufacturePojoWithFullData(UpdateUserDTO::class.java)
-        every { userDAOMockk.exists(any()) } returns true
-        every { userDAOMockk.update(any()) } throws ServiceException(-4, "Failed to update user")
+        every { userRepoMockk.exists(any()) } returns true
+        every { userRepoMockk.update(any()) } throws ServiceException(-4, "Failed to update user")
 
         //THEN
         assertThrows<ServiceException> {
             //WHEN
             underTest.updateUser(updatedUserData)
         }
-        verify { userDAOMockk.exists(any()) }
-        verify { userDAOMockk.update(any()) }
+        verify { userRepoMockk.exists(any()) }
+        verify { userRepoMockk.update(any()) }
     }
 
 
@@ -294,13 +294,13 @@ class UserControllerImplTest {
     fun `it should delete a user with a given id`() {
         //GIVEN
         val oneUserID = ObjectId("6531129a47cd2414681c3657")
-        every { userDAOMockk.exists(oneUserID) } returns true
-        every { userDAOMockk.delete(oneUserID) } returns 1L
+        every { userRepoMockk.exists(oneUserID) } returns true
+        every { userRepoMockk.delete(oneUserID) } returns 1L
 
         //WHEN
         val expected = underTest.deleteUser(oneUserID.toHexString())
-        verify { userDAOMockk.exists(oneUserID) }
-        verify { userDAOMockk.delete(oneUserID) }
+        verify { userRepoMockk.exists(oneUserID) }
+        verify { userRepoMockk.delete(oneUserID) }
 
         //THEN
         Assertions.assertThat(expected.data).isEqualTo(true)
@@ -312,13 +312,13 @@ class UserControllerImplTest {
     fun `it cannot delete an address because the id does not exist`() {
         //GIVEN
         val userID = ObjectId()
-        every { userDAOMockk.exists(userID) } returns false
-        every { userDAOMockk.get(userID) } returns null
+        every { userRepoMockk.exists(userID) } returns false
+        every { userRepoMockk.get(userID) } returns null
 
         //WHEN
         val expected = underTest.deleteUser(userID.toHexString())
-        verify { userDAOMockk.exists(userID) }
-        verify(exactly = 0) { userDAOMockk.get(userID) }
+        verify { userRepoMockk.exists(userID) }
+        verify(exactly = 0) { userRepoMockk.get(userID) }
 
         //THEN
         Assertions.assertThat(expected.code).isEqualTo(CODE_FAILURE)
@@ -328,11 +328,11 @@ class UserControllerImplTest {
     @Test
     fun `it should delete all users`() {
         //GIVEN
-        every { userDAOMockk.deleteAll() } returns 1L
+        every { userRepoMockk.deleteAll() } returns 1L
 
         //WHEN
         val expected = underTest.deleteAllUsers()
-        verify { userDAOMockk.deleteAll() }
+        verify { userRepoMockk.deleteAll() }
 
         //THEN
         Assertions.assertThat(expected.data).isEqualTo(true)
@@ -343,7 +343,7 @@ class UserControllerImplTest {
     @Test
     fun `it should throw ServiceException when deleting all addresses`() {
         //GIVEN
-        every { userDAOMockk.deleteAll() } throws ServiceException(-4, "Error whiles deleting all users")
+        every { userRepoMockk.deleteAll() } throws ServiceException(-4, "Error whiles deleting all users")
 
         //THEN
         assertThrows<ServiceException> {
@@ -351,6 +351,6 @@ class UserControllerImplTest {
             underTest.deleteAllUsers()
         }
 
-        verify { userDAOMockk.deleteAll() }
+        verify { userRepoMockk.deleteAll() }
     }
 }
