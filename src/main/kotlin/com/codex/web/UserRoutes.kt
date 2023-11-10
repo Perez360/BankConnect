@@ -3,7 +3,7 @@ package com.codex.web
 import com.codex.controllers.UserController
 import com.codex.dtos.CreateUserDTO
 import com.codex.dtos.UpdateUserDTO
-import com.codex.enums.SystemErrorCode
+import com.codex.enums.ErrorCode
 import com.codex.exceptions.ServiceException
 import com.codex.models.FilterUserRequest
 import com.codex.util.validators.UserFilterValidator
@@ -29,7 +29,7 @@ fun Application.configureUserRouting() {
             get("/{id}") {
                 val id = call.parameters["id"] ?: return@get call.respond(
                     HttpStatusCode.BadRequest,
-                    ServiceException(SystemErrorCode.BAD_REQUEST, "No id found")
+                    ServiceException(ErrorCode.BAD_REQUEST, "No id found")
                 )
                 val user = useController.getUserById(id)
 
@@ -67,7 +67,7 @@ fun Application.configureUserRouting() {
 
             delete("/{id}") {
                 val id = call.parameters["id"]
-                    ?: return@delete call.respond(HttpStatusCode.BadRequest, ServiceException(SystemErrorCode.BAD_REQUEST, "No id found"))
+                    ?: return@delete call.respond(HttpStatusCode.BadRequest, ServiceException(ErrorCode.BAD_REQUEST, "No id found"))
 
                 val response = useController.deleteUser(id)
                 call.respond(HttpStatusCode.OK, response)

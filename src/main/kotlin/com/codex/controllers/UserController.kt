@@ -14,8 +14,8 @@ interface UserController {
     fun getUserById(id: String): APIResponse<User>
     fun updateUser(updateUser: UpdateUserDTO): APIResponse<User>
     fun login(loginDTO: LoginDTO): APIResponse<Session>
-    fun listUsers(page: Int? = 1, size: Int? = 10): APIResponse<PaginationModel<List<User>>>
-    fun filterUsers(filterUserRequest: FilterUserRequest): APIResponse<PaginationModel<List<User>>>
+    fun listUsers(page: Int? = 1, size: Int? = 10): APIResponse<PaginationModel<User>>
+    fun filterUsers(filterUserRequest: FilterUserRequest): APIResponse<PaginationModel<User>>
     fun deleteUser(id: String): APIResponse<User>
     fun deleteAllUsers(): APIResponse<Boolean>
 }

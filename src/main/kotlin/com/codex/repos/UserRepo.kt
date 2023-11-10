@@ -11,8 +11,8 @@ interface UserRepo {
     fun get(email: String): User?
     fun exists(id: ObjectId): Boolean
     fun update(updateUser: User): User
-    fun list(page: Int = 1, size: Int = 10): PaginationModel<List<User>>
-    fun filter(filterUserRequest: FilterUserRequest): PaginationModel<List<User>>
+    fun list(page: Int = 1, size: Int = 10): PaginationModel<User>
+    fun filter(filterUserRequest: FilterUserRequest): PaginationModel<User>
     fun count(): Long
     fun delete(id: ObjectId): User?
     fun deleteAll(): Long

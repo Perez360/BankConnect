@@ -47,8 +47,9 @@ object UserCacheManager {
     }
 
     fun invalidateAll() {
-        if (Configuration.CACHING_STATUS)
+        if (Configuration.CACHING_STATUS) {
             log.info("All users have been cleared from cache")
-        storage.invalidateAll()
+            storage.invalidateAll()
+        }
     }
 }

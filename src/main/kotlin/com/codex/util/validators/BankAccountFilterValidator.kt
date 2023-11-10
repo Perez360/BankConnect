@@ -2,7 +2,7 @@ package com.codex.util.validators
 
 import com.codex.enums.AccountStatus
 import com.codex.enums.AccountType
-import com.codex.enums.SystemErrorCode
+import com.codex.enums.ErrorCode
 import com.codex.exceptions.ServiceException
 
 class BankAccountFilterValidator {
@@ -17,7 +17,7 @@ class BankAccountFilterValidator {
                 try {
                     AccountStatus.valueOf(it)
                 } catch (ex: IllegalArgumentException) {
-                    throw ServiceException(SystemErrorCode.BAD_REQUEST, "Invalid filter provided for account status")
+                    throw ServiceException(ErrorCode.BAD_REQUEST, "Invalid filter provided for account status")
                 }
             }
 
@@ -25,7 +25,7 @@ class BankAccountFilterValidator {
                 try {
                     AccountType.valueOf(it)
                 } catch (ex: IllegalArgumentException) {
-                    throw ServiceException(SystemErrorCode.BAD_REQUEST, "Invalid filter provided for account type")
+                    throw ServiceException(ErrorCode.BAD_REQUEST, "Invalid filter provided for account type")
                 }
             }
 

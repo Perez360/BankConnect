@@ -3,12 +3,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.codex</groupId>
-    <artifactId>com-codex-user-crud-with-mongodb</artifactId>
+    <artifactId>com-codex-bank-connect</artifactId>
     <version>0.0.1</version>
-    <name>com.codex-user-crud-with-mongodb</name>
-    <description>com.codex.user-crud-with-mongodb</description>
+    <name>com.codex-bank-connect</name>
+    <description>Bank Connect is a convenient and secure application that allows users to manage their bank accounts and financial transactions seamlessly.</description>
     <properties>
-        <ktor_version>2.3.5</ktor_version>
+        <ktor_version>2.3.6</ktor_version>
         <kotlin.code.style>official</kotlin.code.style>
         <kotlin_version>1.9.10</kotlin_version>
         <logback_version>1.4.11</logback_version>
@@ -19,9 +19,10 @@
         <morphia.version>2.2.10</morphia.version>
         <jackson.version>2.13.0</jackson.version>
         <kodein.version>7.20.2</kodein.version>
+        <jacoco.version>0.8.7</jacoco.version>
         <caffeine.version>3.1.5</caffeine.version>
         <assertj-core.version>3.24.2</assertj-core.version>
-        <mockk.version>1.12.0</mockk.version>
+        <mockk.version>1.13.7</mockk.version>
         <junit-jupiter.version>5.10.0</junit-jupiter.version>
         <main.class>io.ktor.server.netty.EngineMain</main.class>
     </properties>
@@ -112,7 +113,7 @@
         </dependency>
         <dependency>
             <groupId>io.mockk</groupId>
-            <artifactId>mockk</artifactId>
+            <artifactId>mockk-jvm</artifactId>
             <version>${mockk.version}</version>
             <scope>test</scope>
         </dependency>
@@ -246,6 +247,30 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!--Code coverage-->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>

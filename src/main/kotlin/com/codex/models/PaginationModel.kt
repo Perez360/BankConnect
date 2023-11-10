@@ -7,10 +7,10 @@ data class PaginationModel<T>(
     val size: Int,
     val totalPages: Int,
     val totalElements: Int,
-    val data: T
+    val data: List<T>
 )
 
-fun <E> List<E>.toPaginationModel(page: Int, size: Int): PaginationModel<List<E>> {
+fun <E> List<E>.toPaginationModel(page: Int, size: Int): PaginationModel<E> {
     return PaginationModel(
         page = page,
         size = size,

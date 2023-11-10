@@ -1,7 +1,7 @@
 package com.codex.web
 
 import com.codex.controllers.BankAccountController
-import com.codex.enums.SystemErrorCode
+import com.codex.enums.ErrorCode
 import com.codex.exceptions.ServiceException
 import com.codex.models.BankAccount
 import io.ktor.http.*
@@ -24,7 +24,7 @@ fun Application.configureBankAccountRouting() {
             }
 
             get("/{id}") {
-                val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest,ServiceException(SystemErrorCode.BAD_REQUEST,"No id found"))
+                val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest,ServiceException(ErrorCode.BAD_REQUEST,"No id found"))
                 val bankAccount = bankAccountController.getBankAccountById(id)
                 call.respond(HttpStatusCode.OK, bankAccount)
             }

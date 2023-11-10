@@ -1,6 +1,7 @@
 package com.codex.util
 
 import com.codex.domain.*
+import com.codex.models.User
 import com.codex.shared.APIResponse
 
 fun <T> wrapSuccessInResponse(data: T): APIResponse<T> {

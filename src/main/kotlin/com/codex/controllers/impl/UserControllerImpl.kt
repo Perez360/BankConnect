@@ -6,7 +6,7 @@ import com.codex.dtos.CreateUserDTO
 import com.codex.dtos.LoginDTO
 import com.codex.dtos.Session
 import com.codex.dtos.UpdateUserDTO
-import com.codex.enums.SystemErrorCode
+import com.codex.enums.ErrorCode
 import com.codex.exceptions.ServiceException
 import com.codex.models.FilterUserRequest
 import com.codex.models.PaginationModel
@@ -34,7 +34,7 @@ class UserControllerImpl(override val di: DI) : UserController, DIAware {
         user.password = PasswordOperations.encrypt(createUserDTO.password)
 
         val newUser = userRepo.create(user)
-            ?: throw ServiceException(SystemErrorCode.INTERNAL_SERVER_ERROR, "Failed to save user")
+            ?: throw ServiceException(ErrorCode.INTERNAL_SERVER_ERROR, "Failed to save user")
         return wrapSuccessInResponse(newUser)
     }
 
@@ -65,26 +65,26 @@ class UserControllerImpl(override val di: DI) : UserController, DIAware {
         if (oneUser == mappedUser) return wrapSuccessInResponse(oneUser)
 
         val updatedUser = userRepo.update(mappedUser)
-            ?: throw ServiceException(SystemErrorCode.INTERNAL_SERVER_ERROR, "Failed to update user")
+            ?: throw ServiceException(ErrorCode.INTERNAL_SERVER_ERROR, "Failed to update user")
         return wrapSuccessInResponse(updatedUser)
     }
 
     override fun login(loginDTO: LoginDTO): APIResponse<Session> {
         val user = userRepo.get(loginDTO.email)
-            ?: throw ServiceException(SystemErrorCode.UNAUTHORIZED, "Username or password is not valid")
+            ?: throw ServiceException(ErrorCode.UNAUTHORIZED, "Username or password is not valid")
         val session = sessionRepo.create(user.id)
 
         return wrapSuccessInResponse(session)
     }
 
-    override fun listUsers(page: Int?, size: Int?): APIResponse<PaginationModel<List<User>>> {
+    override fun listUsers(page: Int?, size: Int?): APIResponse<PaginationModel<User>> {
         val page1 = page ?: 1
         val size1 = size ?: 10
         val listOfUsers = userRepo.list(page1, size1)
         return wrapSuccessInResponse(listOfUsers)
     }
 
-    override fun filterUsers(filterUserRequest: FilterUserRequest): APIResponse<PaginationModel<List<User>>> {
+    override fun filterUsers(filterUserRequest: FilterUserRequest): APIResponse<PaginationModel<User>> {
         val listOfUsers = userRepo.filter(filterUserRequest)
         return wrapSuccessInResponse(listOfUsers)
     }
@@ -95,7 +95,7 @@ class UserControllerImpl(override val di: DI) : UserController, DIAware {
         if (!isUserExists) return wrapFailureInResponse("User does not exist with this ID: $id")
 
         val deletedUser = userRepo.delete(userID)
-            ?: throw ServiceException(SystemErrorCode.INTERNAL_SERVER_ERROR, "Failed to delete user")
+            ?: throw ServiceException(ErrorCode.INTERNAL_SERVER_ERROR, "Failed to delete user")
 
         UserCacheManager.invalidate(userID)
         return wrapSuccessInResponse(deletedUser)
@@ -104,7 +104,7 @@ class UserControllerImpl(override val di: DI) : UserController, DIAware {
     override fun deleteAllUsers(): APIResponse<Boolean> {
         val deleteCount = userRepo.deleteAll()
         if (userRepo.count() > deleteCount) throw ServiceException(
-            SystemErrorCode.INTERNAL_SERVER_ERROR,
+            ErrorCode.INTERNAL_SERVER_ERROR,
             "Failed to delete all users"
         )
         UserCacheManager.invalidateAll()

@@ -1,7 +1,7 @@
 package com.codex.controllers.impl
 
 import com.codex.controllers.BankAccountController
-import com.codex.enums.SystemErrorCode
+import com.codex.enums.ErrorCode
 import com.codex.exceptions.ServiceException
 import com.codex.models.BankAccount
 import com.codex.models.FilterBankAccountRequest
@@ -22,7 +22,7 @@ class BankAccountControllerImpl(override val di: DI) : BankAccountController, DI
         BankAccountValidator.validate(bankAccount)
 
         val newUser = bankAccountDAO.create(bankAccount) ?: throw ServiceException(
-            SystemErrorCode.INTERNAL_SERVER_ERROR,
+            ErrorCode.INTERNAL_SERVER_ERROR,
             "Failed to save bank account"
         )
         return wrapSuccessInResponse(newUser)
@@ -44,7 +44,7 @@ class BankAccountControllerImpl(override val di: DI) : BankAccountController, DI
 
         val updatedBankAccount =
             bankAccountDAO.update(bankAccount) ?: throw ServiceException(
-                SystemErrorCode.INTERNAL_SERVER_ERROR,
+                ErrorCode.INTERNAL_SERVER_ERROR,
                 "Failed to update bank account"
             )
         return wrapSuccessInResponse(updatedBankAccount)
@@ -65,14 +65,14 @@ class BankAccountControllerImpl(override val di: DI) : BankAccountController, DI
         if (!isUserExists) return wrapFailureInResponse("BankAccount does not exist with this ID: $id")
 
         val deletedAccount = bankAccountDAO.delete(id)
-            ?: throw ServiceException(SystemErrorCode.INTERNAL_SERVER_ERROR, "Failed to delete bank account")
+            ?: throw ServiceException(ErrorCode.INTERNAL_SERVER_ERROR, "Failed to delete bank account")
         return wrapSuccessInResponse(deletedAccount)
     }
 
     override fun deleteAllBankAccounts(): APIResponse<Boolean> {
         val deleteCount = bankAccountDAO.deleteAll()
         if (deleteCount < 1) throw ServiceException(
-            SystemErrorCode.INTERNAL_SERVER_ERROR,
+            ErrorCode.INTERNAL_SERVER_ERROR,
             "Failed to delete all bank accounts"
         )
         return wrapSuccessInResponse(true)

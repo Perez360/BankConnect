@@ -1,7 +1,7 @@
 package com.codex.core.plugins
 
 
-import com.codex.enums.SystemErrorCode.*
+import com.codex.enums.ErrorCode.*
 import com.codex.exceptions.ServiceException
 import com.codex.util.wrapFailureInResponse
 import io.ktor.http.*

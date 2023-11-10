@@ -1,23 +1,24 @@
 package com.codex.controllers
 
+import com.codex.UserMocker.Companion.mockedAddUserDTO
+import com.codex.UserMocker.Companion.mockedUpdateUserDTO
+import com.codex.UserMocker.Companion.mockedUser
 import com.codex.controllers.impl.UserControllerImpl
 import com.codex.domain.CODE_FAILURE
 import com.codex.domain.CODE_SERVICE_FAILURE
 import com.codex.domain.CODE_SERVICE_SUCCESS
 import com.codex.domain.CODE_SUCCESS
+import com.codex.enums.ErrorCode
 import com.codex.exceptions.ServiceException
-import com.codex.models.CreateUserDTO
 import com.codex.models.FilterUserRequest
-import com.codex.models.UpdateUserDTO
 import com.codex.models.User
+import com.codex.models.toPaginationModel
 import com.codex.repos.UserRepo
-import com.codex.util.factories.LocalDateTimeTypeManufacturer
-import com.codex.util.factories.LocalDateTypeManufacturer
-import com.codex.util.factories.ObjectIdTypeManufacturer
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
 import io.mockk.verify
+import org.apache.commons.lang3.RandomStringUtils
 import org.assertj.core.api.Assertions
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.*
@@ -25,28 +26,19 @@ import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import uk.co.jemos.podam.api.PodamFactory
-import uk.co.jemos.podam.api.PodamFactoryImpl
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserControllerImplTest {
     private lateinit var log: Logger
-    private lateinit var factory: PodamFactory
     private lateinit var underTest: UserController
     private lateinit var userRepoMockk: UserRepo
     private lateinit var di: DI
-    private lateinit var listOfUsers: List<User>
+    private lateinit var listOfMockedUsers: List<User>
 
     @BeforeEach
     fun setUp() {
         log = LoggerFactory.getLogger(this::class.java)
-        factory = PodamFactoryImpl()
-        factory.strategy.addOrReplaceTypeManufacturer(LocalDate::class.java, LocalDateTypeManufacturer())
-        factory.strategy.addOrReplaceTypeManufacturer(LocalDateTime::class.java, LocalDateTimeTypeManufacturer())
-        factory.strategy.addOrReplaceTypeManufacturer(ObjectId::class.java, ObjectIdTypeManufacturer())
-        listOfUsers = factory.manufacturePojoWithFullData(List::class.java, User::class.java) as List<User>
+        listOfMockedUsers = listOf(mockedUser(), mockedUser(), mockedUser(), mockedUser())
 
 
         userRepoMockk = mockk(relaxed = true)
@@ -64,8 +56,8 @@ class UserControllerImplTest {
     @Test
     fun `it should create a new user with a given user detail`() {
         //GIVEN
-        val newUser = factory.manufacturePojoWithFullData(CreateUserDTO::class.java)
-        val savedUser = factory.manufacturePojoWithFullData(User::class.java)
+        val newUser = mockedAddUserDTO()
+        val savedUser = mockedUser()
         every { userRepoMockk.create(any()) } returns savedUser
 
         //WHEN
@@ -82,9 +74,11 @@ class UserControllerImplTest {
     @Test
     fun `it should throw ServiceException when creating a user`() {
         //GIVEN
-        val newUser = factory.manufacturePojoWithFullData(CreateUserDTO::class.java)
-        every { userRepoMockk.create(any()) } throws
-                ServiceException(-4, "Failed to create user")
+        val newUser = mockedAddUserDTO()
+        every { userRepoMockk.create(any()) } throws ServiceException(
+            ErrorCode.values().random(),
+            "Failed to create user"
+        )
         //THEN
         assertThrows<ServiceException> {
             //WHEN
@@ -98,7 +92,7 @@ class UserControllerImplTest {
     fun `it should get a user with a given id`() {
         //GIVEN
         val userID = ObjectId()
-        val oneUser = factory.manufacturePojoWithFullData(User::class.java)
+        val oneUser = mockedUser()
         every { userRepoMockk.get(userID) } returns oneUser
 
         //WHEN
@@ -132,8 +126,10 @@ class UserControllerImplTest {
     fun `it should throw ServiceException when getting a user using given id`() {
         //GIVEN
         val userID = ObjectId()
-        every { userRepoMockk.get(userID) } throws
-                ServiceException(-1, "Error fetching  user")
+        every { userRepoMockk.get(userID) } throws ServiceException(
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "Error fetching  user"
+        )
 
         //THEN
         assertThrows<ServiceException> {
@@ -150,15 +146,17 @@ class UserControllerImplTest {
         //GIVEN
         val page = 1
         val size = 100
-        every { userRepoMockk.list(page, size) } returns listOfUsers
+        every { userRepoMockk.list(page, size) } returns listOfMockedUsers.toPaginationModel(page, size)
 
         //WHEN
         val expected = underTest.listUsers(page, size)
         verify { userRepoMockk.list(page, size) }
 
         //THEN
-        Assertions.assertThat(expected.data).isEqualTo(listOfUsers)
-        Assertions.assertThat(expected.data?.size).isEqualTo(listOfUsers.size)
+        Assertions.assertThat(expected.data?.data).isEqualTo(listOfMockedUsers)
+        Assertions.assertThat(expected.data?.totalElements).isEqualTo(listOfMockedUsers.size)
+        Assertions.assertThat(expected.data?.size).isEqualTo(size)
+        Assertions.assertThat(expected.data?.page).isEqualTo(page)
         Assertions.assertThat(expected.code).isEqualTo(CODE_SUCCESS)
         Assertions.assertThat(expected.systemCode).isEqualTo(CODE_SERVICE_SUCCESS)
     }
@@ -169,15 +167,17 @@ class UserControllerImplTest {
         //GIVEN
         val page = 1
         val size = 100
-        every { userRepoMockk.list(page, size) } returns emptyList()
+        every { userRepoMockk.list(page, size) } returns emptyList<User>().toPaginationModel(page, size)
 
         //WHEN
         val expected = underTest.listUsers(page, size)
         verify { userRepoMockk.list(page, size) }
 
         //THEN
-        Assertions.assertThat(expected.data).isEqualTo(emptyList<User>())
-        Assertions.assertThat(expected.data?.size).isEqualTo(0)
+        Assertions.assertThat(expected.data?.data).isEqualTo(emptyList<User>())
+        Assertions.assertThat(expected.data?.totalElements).isEqualTo(0)
+        Assertions.assertThat(expected.data?.size).isEqualTo(size)
+        Assertions.assertThat(expected.data?.page).isEqualTo(page)
         Assertions.assertThat(expected.code).isEqualTo(CODE_SUCCESS)
         Assertions.assertThat(expected.systemCode).isEqualTo(CODE_SERVICE_SUCCESS)
     }
@@ -187,8 +187,10 @@ class UserControllerImplTest {
         //GIVEN
         val page = 1
         val size = 100
-        every { userRepoMockk.list(page, size) } throws
-                ServiceException(-4, "Unable to list users")
+        every { userRepoMockk.list(page, size) } throws ServiceException(
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "Unable to list users"
+        )
 
         //THEN
         assertThrows<ServiceException> {
@@ -202,16 +204,18 @@ class UserControllerImplTest {
     @Test
     fun `it should filter no users`() {
         //GIVEN
-        val filterRequest = factory.manufacturePojoWithFullData(FilterUserRequest::class.java)
-        every { userRepoMockk.filter(filterRequest) } returns emptyList()
+        val filterRequest = FilterUserRequest.fromMap(mapOf("firstName" to RandomStringUtils.randomAlphabetic(10)))
+        every { userRepoMockk.filter(filterRequest) } returns emptyList<User>().toPaginationModel(
+            filterRequest.page, filterRequest.size
+        )
 
         //WHEN
         val expected = underTest.filterUsers(filterRequest)
         verify { userRepoMockk.filter(filterRequest) }
 
         //THEN
-        Assertions.assertThat(expected.data).isEqualTo(emptyList<User>())
-        Assertions.assertThat(expected.data?.size).isEqualTo(0)
+        Assertions.assertThat(expected.data?.data).isEqualTo(emptyList<User>())
+        Assertions.assertThat(expected.data?.data?.size).isEqualTo(0)
         Assertions.assertThat(expected.code).isEqualTo(CODE_SUCCESS)
         Assertions.assertThat(expected.systemCode).isEqualTo(CODE_SERVICE_SUCCESS)
     }
@@ -219,16 +223,20 @@ class UserControllerImplTest {
     @Test
     fun `it should filter some users`() {
         //GIVEN
-        val filterRequest = factory.manufacturePojoWithFullData(FilterUserRequest::class.java)
-        every { userRepoMockk.filter(filterRequest) } returns listOfUsers
+        val oneUser = listOfMockedUsers.first()
+        val filterRequest = FilterUserRequest.fromMap(mapOf("middleName" to oneUser.middleName))
+        every { userRepoMockk.filter(filterRequest) } returns listOfMockedUsers.toPaginationModel(
+            filterRequest.page, filterRequest.size
+        )
 
         //WHEN
         val expected = underTest.filterUsers(filterRequest)
         verify { userRepoMockk.filter(filterRequest) }
 
         //THEN
-        Assertions.assertThat(expected.data).isEqualTo(listOfUsers)
-        Assertions.assertThat(expected.data?.size).isEqualTo(listOfUsers.size)
+        Assertions.assertThat(expected.data?.totalElements).isEqualTo(listOfMockedUsers.size)
+        Assertions.assertThat(expected.data?.data?.first()).isEqualTo(oneUser)
+        Assertions.assertThat(expected.data?.data?.size).isEqualTo(listOfMockedUsers.size)
         Assertions.assertThat(expected.code).isEqualTo(CODE_SUCCESS)
         Assertions.assertThat(expected.systemCode).isEqualTo(CODE_SERVICE_SUCCESS)
     }
@@ -237,9 +245,11 @@ class UserControllerImplTest {
     @Test
     fun `it should throw ServiceException when filtering  users`() {
         //GIVEN
-        val filterRequest = factory.manufacturePojoWithFullData(FilterUserRequest::class.java)
-        every { userRepoMockk.filter(filterRequest) } throws
-                ServiceException(-4, "Unable to filter users")
+        val filterRequest = FilterUserRequest.fromMap(mapOf("lastName" to RandomStringUtils.randomAlphabetic(10)))
+        every { userRepoMockk.filter(filterRequest) } throws ServiceException(
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "Unable to filter users"
+        )
 
         //THEN
         assertThrows<ServiceException> {
@@ -254,8 +264,8 @@ class UserControllerImplTest {
     @Test
     fun `it should update an user with a new given user info`() {
         //GIVEN
-        val updatedUserData = factory.manufacturePojoWithFullData(UpdateUserDTO::class.java)
-        val savedUser = factory.manufacturePojoWithFullData(User::class.java)
+        val updatedUserData = mockedUpdateUserDTO()
+        val savedUser = mockedUser()
         every { userRepoMockk.exists(any()) } returns true
         every { userRepoMockk.update(any()) } returns savedUser
 
@@ -265,9 +275,9 @@ class UserControllerImplTest {
         verify { userRepoMockk.update(any()) }
 
         //THEN
-        Assertions.assertThat(expected.data).isEqualTo(updatedUserData)
-        Assertions.assertThat(expected.data).isSameAs(updatedUserData)
-        Assertions.assertThat(expected.data?.id).isEqualTo(updatedUserData.id)
+        Assertions.assertThat(expected.data).isEqualTo(savedUser)
+        Assertions.assertThat(expected.data).isSameAs(savedUser)
+        Assertions.assertThat(expected.data?.id).isEqualTo(savedUser.id)
         Assertions.assertThat(expected.code).isEqualTo(CODE_SUCCESS)
         Assertions.assertThat(expected.systemCode).isEqualTo(CODE_SERVICE_SUCCESS)
     }
@@ -276,9 +286,11 @@ class UserControllerImplTest {
     @Test
     fun `it should throws ServiceException in the process of updating`() {
         //GIVEN
-        val updatedUserData = factory.manufacturePojoWithFullData(UpdateUserDTO::class.java)
+        val updatedUserData = mockedUpdateUserDTO()
         every { userRepoMockk.exists(any()) } returns true
-        every { userRepoMockk.update(any()) } throws ServiceException(-4, "Failed to update user")
+        every { userRepoMockk.update(any()) } throws ServiceException(
+            ErrorCode.INTERNAL_SERVER_ERROR, "Failed to update user"
+        )
 
         //THEN
         assertThrows<ServiceException> {
@@ -294,8 +306,9 @@ class UserControllerImplTest {
     fun `it should delete a user with a given id`() {
         //GIVEN
         val oneUserID = ObjectId("6531129a47cd2414681c3657")
+        val mockedUser = mockedUser()
         every { userRepoMockk.exists(oneUserID) } returns true
-        every { userRepoMockk.delete(oneUserID) } returns 1L
+        every { userRepoMockk.delete(oneUserID) } returns mockedUser
 
         //WHEN
         val expected = underTest.deleteUser(oneUserID.toHexString())
@@ -303,7 +316,7 @@ class UserControllerImplTest {
         verify { userRepoMockk.delete(oneUserID) }
 
         //THEN
-        Assertions.assertThat(expected.data).isEqualTo(true)
+        Assertions.assertThat(expected.data).isNotNull
         Assertions.assertThat(expected.code).isEqualTo(CODE_SUCCESS)
         Assertions.assertThat(expected.systemCode).isEqualTo(CODE_SERVICE_SUCCESS)
     }
@@ -343,7 +356,9 @@ class UserControllerImplTest {
     @Test
     fun `it should throw ServiceException when deleting all addresses`() {
         //GIVEN
-        every { userRepoMockk.deleteAll() } throws ServiceException(-4, "Error whiles deleting all users")
+        every { userRepoMockk.deleteAll() } throws ServiceException(
+            ErrorCode.INTERNAL_SERVER_ERROR, "Error whiles deleting all users"
+        )
 
         //THEN
         assertThrows<ServiceException> {

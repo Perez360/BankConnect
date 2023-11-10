@@ -1,7 +1,7 @@
 package com.codex.util.validators
 
+import com.codex.enums.ErrorCode
 import com.codex.enums.Gender
-import com.codex.enums.SystemErrorCode
 import com.codex.enums.UserStatus
 import com.codex.exceptions.ServiceException
 
@@ -15,14 +15,14 @@ class UserFilterValidator {
                 try {
                     Gender.valueOf(it)
                 } catch (ex: Exception) {
-                    throw ServiceException(SystemErrorCode.BAD_REQUEST, "Invalid gender provided")
+                    throw ServiceException(ErrorCode.BAD_REQUEST, "Invalid gender provided")
                 }
             }
             status?.let {
                 try {
                     UserStatus.valueOf(it)
                 } catch (ex: Exception) {
-                    throw ServiceException(SystemErrorCode.BAD_REQUEST, "Invalid status provided")
+                    throw ServiceException(ErrorCode.BAD_REQUEST, "Invalid status provided")
                 }
             }
             dateCreated?.let { DateTimeOperations.validateLocalDateAndParse(it) }

@@ -43,13 +43,13 @@ class UserService(private val dataStore: Datastore) : UserRepo {
         dataStore.merge(updateUser, InsertOneOptions().unsetMissing(false))
     }
 
-    override fun list(page: Int, size: Int): PaginationModel<List<User>> = dataStore.withTransaction {
+    override fun list(page: Int, size: Int): PaginationModel<User> = dataStore.withTransaction {
         dataStore.find(User::class.java)
             .iterator(FindOptions().skip((page - 1)).limit(size))
             .toList().toPaginationModel(page, size)
     }
 
-    override fun filter(filterUserRequest: FilterUserRequest): PaginationModel<List<User>> =
+    override fun filter(filterUserRequest: FilterUserRequest): PaginationModel<User> =
         dataStore.withTransaction { _ ->
             val query: Query<User> = dataStore.find(User::class.java)
             val filters = mutableListOf<Filter>()

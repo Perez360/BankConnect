@@ -1,6 +1,6 @@
 package com.codex.util.validators
 
-import com.codex.enums.SystemErrorCode
+import com.codex.enums.ErrorCode
 import com.codex.exceptions.ServiceException
 import com.codex.util.JacksonUtils
 import java.time.LocalDate
@@ -14,7 +14,7 @@ class DateTimeOperations {
             try {
                 return LocalDateTime.parse(dateTime, DateTimeFormatter.ofPattern(JacksonUtils.dateTimePattern))
             } catch (ex: DateTimeParseException) {
-                throw ServiceException(SystemErrorCode.BAD_REQUEST, "Invalid date provided")
+                throw ServiceException(ErrorCode.BAD_REQUEST, "Invalid date provided")
             }
         }
 
@@ -22,7 +22,7 @@ class DateTimeOperations {
             try {
                 return LocalDate.parse(date, DateTimeFormatter.ofPattern(JacksonUtils.datePattern))
             } catch (ex: DateTimeParseException) {
-                throw ServiceException(SystemErrorCode.BAD_REQUEST, "Invalid date provided")
+                throw ServiceException(ErrorCode.BAD_REQUEST, "Invalid date provided")
             }
         }
 

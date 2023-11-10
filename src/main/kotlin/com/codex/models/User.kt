@@ -65,6 +65,7 @@ data class User(
                 gender = createUserDTO.gender
             )
         }
+
         fun fromUpdateUserDTO(updateUserDTO: UpdateUserDTO): User {
             return User(
                 id = ObjectId(updateUserDTO.id),
@@ -85,7 +86,6 @@ data class User(
 }
 
 
-
 data class FilterUserRequest(
     var firstName: String? = null,
     var middleName: String? = null,
@@ -103,13 +103,13 @@ data class FilterUserRequest(
             val firstName: String? by map.withDefault { null }
             val middleName: String? by map.withDefault { null }
             val lastName: String? by map.withDefault { null }
-            val status: String? by map.withDefault { UserStatus.ACTIVE.name }
-            val gender: String? by map.withDefault { null }
             val placeOfBirth: String? by map.withDefault { null }
             val homeTown: String? by map.withDefault { null }
+            val status: String? by map.withDefault { UserStatus.ACTIVE.name }
+            val gender: String? by map.withDefault { null }
             val dateOfBirth: String? by map.withDefault { null }
-            val page: String by map.withDefault { "1" }
-            val size: String by map.withDefault { "10" }
+            val page: Int by map.withDefault { 1 }
+            val size: Int by map.withDefault { 10 }
 
             return FilterUserRequest(
                 firstName = firstName,
@@ -120,8 +120,8 @@ data class FilterUserRequest(
                 placeOfBirth = placeOfBirth,
                 homeTown = homeTown,
                 dateOfBirth = dateOfBirth,
-                page = page.toInt(),
-                size = size.toInt()
+                page = page,
+                size = size
             )
         }
     }
